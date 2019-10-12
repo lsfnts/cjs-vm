@@ -1,0 +1,9 @@
+Begin
+#este es un comentario
+int i=2;
+bool = true;
+string s = "hola";
+a = cjread();
+if(i<=20){ 
+}
+End
