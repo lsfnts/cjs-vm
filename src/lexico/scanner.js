@@ -126,7 +126,10 @@ function getToken(ln) {
 			if (ch == '=') {
 				token = tokenGen.other('==', ln);
 				ch = linea[++i];
-			} else {
+			} else if (ch == '=>'){
+				token = tokenGen.other('=>', ln);
+				ch = linea[++i];
+			}else {
 				token = tokenGen.specialSymbol('=', ln);
 			}
 		} else if (ch == '|') {

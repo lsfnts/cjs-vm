@@ -1,55 +1,59 @@
 
 const Type = {
-	NULL: '0',
-	TOKBEGIN: 'tokBegin',
-	TOKEND: 'tokEnd',
+	NULL: 0,
+	TOKBEGIN: 1,
+	TOKEND: 2,
 
-	TOKTINTEGER: 'tokTInteger',
-	TOKTSTRING: 'tokTString',
-	TOKTBOOL: 'tokTBool',
-	TOKTCHAR: 'tokTChar',
-	TOKTFLOAT: 'tokTFloat',
+	TOKTINTEGER: 3,
+	TOKTSTRING: 4,
+	TOKTBOOL: 5,
+	TOKTCHAR: 6,
+	TOKTFLOAT: 6,
 
-	INTEGER: 'integer',
-	STRING: 'string',
-	BOOL: 'bool',
-	CHAR: 'char',
-	FLOAT: 'float',
-	TOKTRUE: 'tokTrue',
-	TOKFALSE: 'tokFalse',
-	TOKOR: 'tokOr',
-	TOKAND: 'tokAnd',
-	TOKIDEN: 'tokIden',
-	TOKIF: 'tokIf',
-	TOKWHILE: 'tokWhile',
-	TOKRETURN: 'tokReturn',
+	INTEGER: 7,
+	STRING: 8,
+	BOOL: 9,
+	CHAR: 10,
+	FLOAT: 11,
+	TOKTRUE: 12,
+	TOKFALSE: 13,
 
-	TOKLPAR: 'tokLPar',
-	TOKRPAR: 'tokRPar',
-	TOKSEMICOLON: 'tokSemicolon',
-	TOKCOMMA: 'tokComma',
-	TOKSINQOUTE: 'tokSinQoute',
-	TOKDOUQUOTE: 'tokDouQoute',
-	TOKLCURL: 'tokLCurl',
-	TOKRCURL: 'tokRCurl',
-	TOKLBRACKET: 'tokLBracket',
-	TOKRBRACKET: 'tokRBracket',
+	TOKOR: 14,
+	TOKAND: 15,
+	TOKIDEN: 16,
+	TOKIF: 17,
+	TOKELIF: 41,
+	TOKELSE: 42,
+	TOKWHILE: 18,
+	TOKRETURN: 19,
 
-	SUM: 'sum',
-	SUB: 'sub',
-	MUL: 'mul',
-	DIV: 'div',
-	POW: 'pow',
-	ASSIGN: 'assign',
-	LESS: 'less',
-	GREAT: 'greater',
-	EQUAL: 'equal',
-	LESSEQ: 'lessEqual',
-	GREATEQ: 'greaterEqual',
+	TOKLPAR: 20,
+	TOKRPAR: 21,
+	TOKSEMICOLON: 22,
+	TOKCOMMA: 23,
+	TOKLCURL: 24,
+	TOKRCURL: 25,
+	TOKLBRACKET: 26,
+	TOKRBRACKET: 27,
+	TOKFUN: 28,
+	ARROW: 29,
+
+	SUM: 30,
+	SUB: 31,
+	MUL: 32,
+	DIV: 33,
+	POW: 34,
+	ASSIGN: 35,
+	LESS: 36,
+	GREAT: 37,
+	EQUAL: 38,
+	LESSEQ: 39,
+	GREATEQ: 40
 
 }
 
 module.exports = {
+	types: Type,
 	specialSymbol: function (c, line) {
 		if (!specialSymbolTok[0]) initializeSpecialSymbols();
 		return { type: specialSymbolTok[c.charCodeAt(0)], value: c, line: line }
@@ -71,6 +75,9 @@ module.exports = {
 				break;
 			case '==':
 				type = Type.EQUAL;
+				break;
+			case '=>':
+				type = Type.ARROW;
 				break;
 			case '||':
 				type = Type.TOKOR;
@@ -98,6 +105,47 @@ module.exports = {
 	char: function (val, line) {
 		return { type: Type.CHAR, value: val, line: line };
 	},
+	isSameType: function (idType, valueType) {
+		switch (idType) {
+			case Type.TOKTINTEGER:
+				return (valueType == Type.INTEGER);
+			case Type.TOKTFLOAT:
+				return valueType == Type.FLOAT;
+			case Type.TOKTBOOL:
+				return (valueType == Type.TOKTRUE || valueType == Type.TOKFALSE);
+			case Type.TOKTSTRING:
+				return valueType == Type.STRING;
+			case Type.TOKTCHAR:
+				return valueType == Type.CHAR;
+		}
+	},
+	isTypeTok: function (tokType) {
+		switch (tokType) {
+			case Type.TOKTINTEGER:
+			case Type.TOKTFLOAT:
+			case Type.TOKTBOOL:
+			case Type.TOKTSTRING:
+			case Type.TOKTCHAR:
+				return true;
+			default:
+				return false;
+		}
+	},
+	isValue: function (tok) {
+		switch (tok) {
+			case Type.INTEGER:
+			case Type.FLOAT:
+			case Type.BOOL:
+			case Type.STRING:
+			case Type.CHAR:
+				return true;
+			default:
+				return false;
+		}
+	},
+	isLetter: function (tok) {
+		return (tok.type == Type.CHAR || tok.type == Type.STRING)
+	},
 	str: function (token) {
 		return `${token.value} -> ${token.type}`;
 	}
@@ -105,9 +153,10 @@ module.exports = {
 
 
 //AGREGAR TODOS
-const resWordLex = ["begin", "bool", "char", "end", "false", "float", "if", "int", "return", "string", "true", "while"];
-const resWordTok = [Type.TOKBEGIN, Type.TOKTBOOL, Type.TOKTCHAR, Type.TOKEND, Type.TOKFALSE, Type.TOKTFLOAT, Type.TOKIF,
-Type.TOKTINTEGER, Type.TOKRETURN, Type.TOKTSTRING, Type.TOKTRUE, Type.TOKWHILE];
+const resWordLex = ["begin", "bool", "char", "end", "false", "float", "fun", "if", "int", "return", "string", "true", "while"
+];
+const resWordTok = [Type.TOKBEGIN, Type.TOKTBOOL, Type.TOKTCHAR, Type.TOKEND, Type.TOKFALSE, Type.TOKTFLOAT,Type.TOKFUN,
+	Type.TOKIF, Type.TOKTINTEGER, Type.TOKRETURN, Type.TOKTSTRING, Type.TOKTRUE, Type.TOKWHILE];
 var specialSymbolTok = new Array(128).fill(0);
 
 function binarySearchResWord(value) {
@@ -128,7 +177,7 @@ function binarySearchResWord(value) {
 
 function initializeSpecialSymbols() {
 	specialSymbolTok[0] = true;
-	
+
 	specialSymbolTok[40] = Type.TOKLPAR;
 	specialSymbolTok[41] = Type.TOKRPAR;
 	specialSymbolTok[42] = Type.MUL;

@@ -2,7 +2,8 @@
 "use strict";
 const program = require('commander');
 var tools = require('../src/cli.js');
-var scanner = require('../src/lexico/scanner');
+var lex = require('../src/lexico/scanner');
+var pars = require('../src/sintactico/parser');
 
 program
 	.version('0.1.0')
@@ -15,7 +16,7 @@ program
 	.description('test')
 	.option("-s, --setup_mode [mode]", "Which setup mode to use")
 	.action(function () {
-		console.log(scanner.fromFile('texto.txt'))
+		console.log(lex.fromFile('texto.txt'))
 	}
 	);
 program
@@ -25,8 +26,9 @@ program
 	.option("-s, --string", "to use file as the text to analize and not path",)
 	.action(function (file, options) {
 		if (options.print) {
-			console.log(scanner.fromFile(file));
-			
+			let tokens = lex.fromFile(file);
+			//console.log(tokens);
+			pars.parse(tokens);
 		}
 		
 	});

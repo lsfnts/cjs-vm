@@ -1,9 +1,11 @@
 Begin
 #este es un comentario
-int i=2;
-bool = true;
+int i='2'
+bool b = true;
 string s = "hola";
-a = cjread();
+fun float() => 
+    int a = 5;
+}
 if(i<=20){ 
 }
 End
