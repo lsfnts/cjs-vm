@@ -55,7 +55,7 @@ function bloque() {
                 break;
             case lex.types.TOKIF:
                 token = nextToken();
-                while (token.type != lex.types.TOKRCURL) token = nextToken();
+                if (token == lex.types.TOKLPAR){}
             default:
                 token = nextToken();
         }
@@ -81,10 +81,10 @@ function declareVar(iden) {
         token = nextToken();
         if (token.type != lex.types.TOKRBRACKET) throwError(token, errorType.NOT_RBRACKET);
     }
-    if (token.type == lex.types.TOKSEMICOLON) {
+    if (token.type == lex.types.TOKSEMI) {
         //poner(iden, token);
         token = nextToken();
-    } else throwError(token, errorType.NOT_SEMICOLON);
+    } else throwError(token, errorType.NOT_SEMI);
 }
 
 function existeVar() {

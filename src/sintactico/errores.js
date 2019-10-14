@@ -13,15 +13,20 @@ const types = {
     NOT_TYPE: 11,
     NOT_ARROW: 12,
     UNDEFINED: 13,
-    NOT_STRING_OP: 14
+    NOT_STRING_OP: 14,
+    NOT_SEMI: 15
 }
 
 module.exports = {
-    throwError: function(token, type, idType, valueType){
-        if(type == types.BAD_TYPE){
+    throwError: function (token, type, idType, valueType) {
+        if (type === types.BAD_TYPE) {
             console.log(`${typesString[type]} tipo id: ${idType}, tipo valor: ${valueType} en la linea ${token.line}`);
+        } else if (type === types.UNDEFINED){
+            console.log(`identificador ${token.value} no definido en la linea ${token.line}`);
+        }else {
+            console.log(`${typesString[type]} en la linea ${token.line}`)
         }
-        
+
     },
     errorType: types
 }
@@ -41,6 +46,7 @@ typesString = [
     'se esperaba un tipo (int|float|char|string|bool)',
     'se esperaba ->',
     'identificador no definido',
-    'operador no valido con strings'
+    'operador no valido con strings',
+    'se esperaba ;'
 ]
 
