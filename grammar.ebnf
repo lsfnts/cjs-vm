@@ -4,7 +4,7 @@ bloque ::= '{' lista_instr '}'
 
 lista_instr ::= instr ( instr)*
 
-instr ::= simple_instr | complex_instr
+instr ::= simple_instr | complex_instr | bloque
 
 simple_instr ::= ( |decla | asign) ';'
 

@@ -9,11 +9,13 @@ module.exports = class VM {
 		this.bytecode;
 		this.ip;
 		this.stack;
+		this.var;
 	}
 
 	interpret(bytecode) {
 		this.bytecode = bytecode;
 		this.stack = [];
+		this.globals = new Map();
 
 		this.ip = 0;
 		return this.run();
@@ -24,11 +26,15 @@ module.exports = class VM {
 		do {
 			this._debug_trace();
 			op = this._readByte();
-			
+
 			switch (op) {
 				case OP.CONSTANT:
 					let constant = this._readConstant();
 					this.stack.push(constant);
+					break;
+				case OP.LONG_CONSTANT:
+					let longConstant = this._readLongConstant();
+					this.stack.push(longConstant);
 					break;
 				case OP.NEGATE: this.stack.push(-this.stack.pop());
 					break;
@@ -40,22 +46,51 @@ module.exports = class VM {
 					this._binaryOp(op);
 					break;
 				case OP.NOT: this.stack.push(!this.stack.pop()); break;
-				case OP.EQUAL:
+				case OP.PRINT: console.log(this.stack.pop()); break;
+				case OP.READ: console.log(this.stack.pop()); break;
+				case OP.POP: this.stack.pop(); break;
+				case OP.GET_VAR:
+					let slot1 = this._readByte();
+					this.stack.push(this.stack[slot1]);
+					break;
+				case OP.LONG_GET_VAR:
+					let slot2 = this._read2Bytes();
+					this.stack.push(this.stack[slot2]);
+					break;
+				case OP.SET_VAR:
+					let slot3 = this._readByte();
+					//quitar pop
+					this.stack[slot3] = this.stack.pop();
+					break;
+				case OP.LONG_SET_VAR:
+					let slot4 = this._read2Bytes();
+					//quitar pop
+					this.stack[slot4] = this.stack.pop();
+					break;
 				case OP.RETURN:
-					console.log(this.stack.pop());
 					return true;
 				default:
+					//console.log(this.bytecode.constants);
+
 					return false;
 			}
-		} while(op);
+		} while (op);
 	}
 
 	_readByte() {
 		return this.bytecode.code[this.ip++];
 	}
 
+	_read2Bytes() {
+		return (this.bytecode.code[this.ip++] << 8) | this.bytecode.code[this.ip++];
+	}
+
 	_readConstant() {
 		return this.bytecode.constants[this.bytecode.code[this.ip++]];
+	}
+
+	_readLongConstant() {
+		return this.bytecode.constants[this._read2Bytes()];
 	}
 
 	_binaryOp(op) {

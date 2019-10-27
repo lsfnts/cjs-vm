@@ -1,4 +1,8 @@
 begin {
-int i = 0
-bool b = i <= 0;
+bool a = 1>0;
+if(a){
+    string s = "hola mundo";
+    cjprint s;
+}
+cjprint s;
 } End

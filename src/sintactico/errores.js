@@ -16,7 +16,11 @@ const types = {
     NOT_STRING_OP: 14,
     NOT_SEMI: 15,
     NOT_NUMBER: 16,
-    NOT_COMPARISON: 17
+    NOT_COMPARISON: 17,
+    VAR_EXIST: 18,
+    NOT_ALPHA: 19,
+    TOO_VAR: 20,
+    VAR_INIT: 21,
 }
 
 const valueTypes = new Map;
@@ -45,7 +49,9 @@ module.exports = {
             console.log(`${typesString[type]} tipo variable: ${valueTypes.get(idType)}, tipo esperado: ${expected}. en la linea ${token.line}`);
         } else if (type === types.UNDEFINED) {
             console.log(`identificador ${token.value} no definido en la linea ${token.line}`);
-        } else {
+        } else if(type === types.VAR_EXIST) {
+            console.log(`identificador ${token.value} ya en uso en el scope actual en la linea ${token.line}`);
+        }else {
             console.log(`${typesString[type]} en la linea ${token.line}`)
         }
 
@@ -71,6 +77,11 @@ typesString = [
     'operador no valido con strings',                       //14
     'se esperaba ;',                                        //15
     'se esperaba un numero',                                //16
-    'se esperaba un operador de comparacion'                //17
+    'se esperaba un operador de comparacion',               //17
+    'la variable ya esta definida en el scope actual',      //18
+    'se esperaba string o char',                            //19
+    'se excedio el maximo de variables',                    //20
+    'no se puede leer una variable durante su inicializacion'//21
+    
 ]
 

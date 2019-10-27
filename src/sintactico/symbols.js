@@ -3,7 +3,7 @@ module.exports = {
 	table: Table,
 	insert: (name, type) => {
 		if (!module.exports.lookup(name)) {
-			Table.push({ name, type, value: null });
+			Table.push({ name, type});
 			return true;
 		} else return false;
 	},

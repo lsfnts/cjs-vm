@@ -139,7 +139,7 @@ module.exports.utils = {
 		return (tok.type === Type.INTEGER || tok.type === Type.FLOAT || tok.type === Type.CHAR);
 	},
 	isBool: function (tok) {
-		return (tok.type === Type.TRUE || tok.type === Type.FALSE);
+		return (tok.type === Type.BOOL || tok.type === Type.TRUE || tok.type === Type.FALSE);
 	},
 	isCompOp: function (tok) {
 		switch (tok.type) {
@@ -153,9 +153,9 @@ module.exports.utils = {
 		return `${token.value} -> ${token.type}`;
 	}
 }
-//AGREGAR TODOS
-const resWordLex = ['begin', 'bool', 'char', 'do', ' elif', 'else', 'end', 'false', 'float', 'for', 'fun', 'if', 'int', 'return', 'string', 'true', 'while'];
-const resWordTok = [Type.BEGIN, Type.TYPE_BOOL, Type.TYPE_CHAR, Type.DO, Type.ELIF, Type.ELSE, Type.END, Type.FALSE, Type.TYPE_FLOAT, Type.FOR, Type.FUN,
+//AGREGAR break
+const resWordLex = ['begin', 'bool', 'char', 'cjprint','cjread' , 'do', ' elif', 'else', 'end', 'false', 'float', 'for', 'fun', 'if', 'int', 'return', 'string', 'true', 'while'];
+const resWordTok = [Type.BEGIN, Type.TYPE_BOOL, Type.TYPE_CHAR, Type.PRINT, Type.READ, Type.DO, Type.ELIF, Type.ELSE, Type.END, Type.FALSE, Type.TYPE_FLOAT, Type.FOR, Type.FUN,
 Type.IF, Type.TYPE_INTEGER, Type.RETURN, Type.TYPE_STRING, Type.TRUE, Type.WHILE];
 
 var specialSymbolTok = new Array(128).fill(0);
