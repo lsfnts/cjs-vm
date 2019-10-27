@@ -1,16 +1,17 @@
 #!/usr/bin/env node
 "use strict";
 const program = require('commander');
-var lex = require('../src/lexico/scanner');
-var lee = require('../src/lexico/lexico')
-var pars = require('../src/sintactico/parser2');
-const { parser } = require('stream-json');
-
-var cmdValue;
+const lex = require('../src/lexico/scanner');
+const parser = require('../src/sintactico/parser2');
+//const { parser } = require('stream-json');
+const db = require('../src/vm/debug');
+const Bytecode = require('../src/vm/bytecode');
+const VM = require('../src/vm/vm');
+const OP = require('../src/vm/opCodes');
 
 
 program
-	.command('run')
+	.command('lex')
 	.description('run setup commands for all envs')
 	.option("-u, --ui", "para usar desde ide, lee el programa de stdio")
 	.option("-f, --file <path>", "para leer el archivo <path>")
@@ -34,24 +35,38 @@ program
 	.option("-e, --exec_mode <mode>", "Which exec mode to use")
 	.action(function (path, options) {
 		console.log('parseando...')
-		pars.parse(lex.fromFile(path));
+		let vm = new VM();
+
+		let bytecode = parser.parse(lex.fromFile(path));
+		db.dissasemble(bytecode, 'prueba');
+		vm.interpret(bytecode);
 	}).on('--help', function () {
 		console.log('');
 		console.log('Examples:');
-		console.log('');
-		console.log('  $ deploy exec sequential');
-		console.log('  $ deploy exec async');
 	});
+
 
 program
-	.command('*')
-	.action(function (env) {
-		console.log('deploying "%s"', env);
+	.command('test')
+	.alias('ex')
+	.description('execute the given remote cmd')
+	.option("-e, --exec_mode <mode>", "Which exec mode to use")
+	.action(function (path, options) {
+		console.log('probando...');
+		let vm = new VM();
+
+		let chunk = new Bytecode();
+
+		db.dissasemble(chunk, 'prueba');
+
+		console.log('corriendo...');
+		vm.interpret(chunk);
+
+	}).on('--help', function () {
 	});
 
-function continuar(newTokens) {
-	parser()
-	process.stdout.write(`[${newTokens.map((token) => { return JSON.stringify(token); }).toString()}]`);
-}
+
+
+
 
 program.parse(process.argv);

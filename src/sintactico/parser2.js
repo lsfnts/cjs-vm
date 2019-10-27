@@ -1,311 +1,428 @@
+//PANIC FLAG
+
 const lex = require('../lexico/lexico').utils;
-const tokT = lex.types;
+const TOK = lex.types;
+
 const err = require('./errores');
+const error = err.errorType;
 
-const symbol = require('./symbols');
+const Symbol = require('./symbols');
 
-const throwError = err.throwError;
-const errorType = err.errorType;
+const OP = require('../vm/opCodes');
+const Bytecode = require('../vm/bytecode');
 
-var tokens;
-var token = lex.empyToken(0, 0);
+
+var tokenList;
+var token = lex.emptyToken(0, 0);
 var i;
+
+var bytecode = new Bytecode();
 
 module.exports = {
 	parse: function (tokenIn) {
-		tokens = tokenIn;
+
+		tokenList = tokenIn;
 		i = -1;
 		nextToken();
 		programa();
+		return bytecode;
 	}
 }
 
 function programa() {
-
-	if (token.type !== tokT.TOKBEGIN) {
-		throwError(token, errorType.NOT_BEGIN);
-	}
+	if (token.type === TOK.BEGIN) nextToken();
+	else throwError(error.NOT_BEGIN);
 	bloque();
-	if (token.type === tokT.TOKEND) {
-
-	}
+	if (token && token.type === TOK.END);
+	else throwError(error.NOT_BEGIN);
 }
 
 function bloque() {
-	if (token.type === tokT.TOKLCURL || token.type === tokT.TOKBEGIN) {
-		nextToken();
-		while (token.type !== tokT.TOKRCURL && token.type !== tokT.TOKEND) {
-			instruccion();
-		}
-	} else throwError(token, errorType.NOT_LCURL);
+
+	if (token.type === TOK.LCURL || token.type === TOK.BEGIN) nextToken();
+	else throwError(error.NOT_LCURL);
+	while (token.type !== TOK.RCURL && token.type !== TOK.END) {
+		instruccion();
+	}
+	nextToken();
 }
 
 function instruccion() {
-	if (token.type === tokT.TOKIDEN) {
-		var tokCache = token;
+	if (token.type === TOK.FUN) {
 		nextToken();
-		if (token.type === tokT.ASSIGN) {
-			asignacion(tokCache);
-		} else if (token.type === tokT.TOKLPAR) {
-			//quiere ser funcion
-		}
-		if (token.type === tokT.TOKSEMI) {
-
-			nextToken()
-
-		} else {
-			throwError(token, errorType.NOT_SEMI);
-		}
-	} else if (lex.isTypeTok(token.type)) {
-		declaracion();
-		if (token.type === tokT.TOKSEMI) {
-			nextToken()
-		} else {
-			throwError(token, errorType.NOT_SEMI);
-		}
-	} else if (token.type === tokT.TOKFUN) {
+		//fun
+	} else if (token.type === TOK.IF) {
 		nextToken();
-
-	} else if (token.type === tokT.TOKIF) {
-		nextToken();
-		if_instr();
-	} else if (token.type === tokT.TOKFOR) {
+		//if_instr();
+	} else if (token.type === TOK.FOR) {
 		nextToken();
 		for_instr();
-	} else if (token.type === tokT.TOKDO) {
+	} else if (token.type === TOK.DO) {
 		nextToken();
-		dowhile_instr();
+		//dowhile_instr();
+	}
+	else {
+		simple_instr();
+		sincronizar();
+		//if (token.type === TOK.SEMI) {
+		//	console.log('next inst');
+		//	nextToken();
+		//} else throwError(error.NOT_SEMI)
+	}
+}
+function simple_instr() {
+	if (token.type === TOK.IDEN) {
+		let tokCache = token;
+		nextToken();
+		if (token.type === TOK.ASSIGN) {
+			asignacion(tokCache);
+		} else if (token.type === TOK.LPAR) {
+			//quiere ser funcion
+		} else {
+			throwError(error.NOT_ASSIGN);
+			return;
+		}
+	} else if (lex.isTypeTok(token)) {
+		declaracion();
+	} else if (token.type === TOK.PRINT) {
+		nextToken();
+		//print_instr();
+	} else if (token.type === TOK.READ) {
+		nextToken();
+		//print_instr();
 	}
 }
 
 function declaracion() {
-	var tokCache = token;
-	nextToken();
-	if (token.type === tokT.TOKIDEN) {
-		symbol.insert(token.value, lex.getValueType(tokCache.type));
-		var tokCache2 = token;
-		nextToken();
-		if (token.type === tokT.ASSIGN) {
-			asignacion(tokCache2);
-		} else if (token.type === tokT.TOKSEMI) {
-			return
-		}
-		else {
-			throwError(token, errorType.NOT_SEMI);
-		}
-	} else {
-		throwError(token, errorType.NOT_IDEN);
-	}
+	console.log('declaracion');
+	var typeCache = token.type;
+	let idenTok;
 
-	while (token.type === tokT.TOKCOMMA) {
-		console.log('mas vars');
+	do {
 		nextToken();
-		if (token.type === tokT.TOKIDEN) {
-			symbol.insert(token.value, lex.getValueType(tokCache.type));
-			var tokCache2 = token;
+		if (token.type === TOK.IDEN) {
+			if (!Symbol.insert(token.value, lex.getType(typeCache))) throwError(error.VAR_EXISTS);
+			idenTok = token;
 			nextToken();
-			if (token.type === tokT.ASSIGN) {
-				asignacion(tokCache2);
-			}
-		}
-	}
-	if (token.type === tokT.TOKSEMI) {
-		return
-	} else {
-		throwError(token, errorType.NOT_SEMI);
-	}
+			if (token.type === TOK.ASSIGN) asignacion(idenTok);
+		} else { throwError(error.NOT_IDEN); return }
+	} while (token.type === TOK.COMMA);
 
 }
 
 function asignacion(tokIden) {
-	console.log(tokIden.value);
-	var s = symbol.lookup(tokIden.value)
-	if (!s) {
-		throwError(tokIden, errorType.UNDEFINED);
-	}
+	console.log('asignacion: ' + tokIden.value);
+	let s = Symbol.lookup(tokIden.value);
+	if (!s)
+		throwError(error.UNDEFINED);
 	nextToken();
-	expresion();
+
+	expresion(s.type);
 }
 
-function expresion() {
-	var expr = { num: 1, alfa: 2, bool: 3 }
-	if (token.type === tokT.TOKLPAR) {
-		//llevar cuenta?
-		expresion();
-	} else {
-		switch (token.type) {
-			case tokT.INTEGER: case tokT.FLOAT: case tokT.UNIPLUS: case tokT.UNINEG:
-				expr_num();
-				return 1;
-			case tokT.STRING: case tokT.CHAR:
-				expr_alfa();
-				return 2;
-			case tokT.TOKTRUE: case tokT.TOKFALSE: case tokT.NOT: case tokT.BOOL:
-				expr_bool();
-				return 3;
+function expresion(type) {
+	var expr = { INTEGER: 8, FLOAT: 9, STRING: 10, CHAR: 11, BOOL: 12, };
+	if (!type) {
+		let offset = 1;
+		let tokenType = token.type;
+		while (tokenType === TOK.LPAR) {
+			tokenType = peek(offset).type;
+		}
+		if (tokenType === TOK.IDEN) {
+			tokenType = Symbol.lookup(token.value).type;
+		}
+		switch (tokenType) {
+			case TOK.INTEGER: expr_num(expr.INTEGER);
 				break;
-			case tokT.TOKIDEN:
-				//checar tipo
-				expresion()
+			case TOK.FLOAT: expr_num(expr.FLOAT);
+				break;
+			case TOK.STRING: expr_string(expr.STRING);
+				break;
+			case TOK.CHAR: expr_num(expr.CHAR);
+				break;
+			case TOK.TRUE: case TOK.FALSE: case TOK.NOT: case TOK.BOOL:
+				expr_bool(expr.BOOL);
+				break;
+			default:
+				break;
+		}
+	}
+	switch (type) {
+		case expr.INTEGER: case expr.FLOAT: case expr.CHAR:
+			expr_num(type);
+			break;
+		case expr.STRING:
+			expr_string(type);
+			break;
+		case expr.BOOL:
+			expr_bool(type);
+			break;
+		default:
+
+			break;
+	}
+}
+
+function expr_num(type) {
+	console.log('expr_num');
+	factor(type);
+	while (token.type === TOK.SUM || token.type === TOK.SUB) {
+		let sign = token.type;
+		nextToken();
+		factor(type);
+		switch (sign) {
+			case TOK.SUM:
+				emitByte(OP.ADD);
+				break;
+			case TOK.SUB:
+				emitByte(OP.SUBTRACT);
+				break;
+		}
+	}
+}
+
+function factor(type) {
+	potencia(type);
+	while (token.type === TOK.MUL || token.type === TOK.DIV || token.type === TOK.MOD) {
+		let sign = token.type;
+		nextToken();
+		potencia(type);
+		switch (sign) {
+			case TOK.MUL:
+				emitByte(OP.MULTIPLY);
+				break;
+			case TOK.DIV:
+				emitByte(OP.DIVIDE);
+				break;
+
 			default:
 				break;
 		}
 	}
 }
 
-function expr_num() {
-	factor();
-	while (token.type === tokT.SUM || token.type === tokT.SUB) {
+function potencia(type) {
+	numero(type);
+	let t = 0;
+	while (token.type === TOK.POW) {
+		++t;
 		nextToken();
-		factor();
+		numero(type);
+
+	}
+	for (let i = 0; i < t; i++) {
+		emitByte(OP.EXPONEN);
+
 	}
 }
 
-function factor() {
-	potencia();
-	while (token.type === tokT.MUL || token.type === tokT.DIV || token.type === tokT.MOD) {
+function numero(type) {
+	if (token.type === TOK.LPAR) {
 		nextToken();
-		potencia();
-	}
-}
+		expr_num(type);
+		if (token.type === TOK.RPAR) {
 
-function potencia() {
-	numero();
-	while (token.type === tokT.POW) {
-		nextToken();
-		numero();
-	}
-}
-
-function numero() {
-	if (token.type === tokT.TOKLPAR) {
-		nextToken();
-		expr_num();
+			nextToken();
+		}
 	} else if (lex.isNum(token)) {
+		emitConstant(Number(token.value));
+		console.log('numero');
+
 		nextToken();
-	} else if (token.type === tokT.TOKIDEN) {
+	} else if (token.type === TOK.CHAR) {
+		emitConstant(token.value.charCodeAt(0));
+		nextToken();
+	} else if (token.type === TOK.IDEN) {
+		var s = Symbol.lookup(token.value);
+
+		if (s) {
+			if (lex.isNum(s)) {
+				//variable
+			} else if (token.type === TOK.CHAR) {
+				//variable
+			} else {
+				throwError(NOT_NUMBER);
+				return;
+			}
+			nextToken();
+		} else {
+			throwError(error.UNDEFINED)
+			nextToken();
+		}
+
+	} else {
+		throwError(error.NOT_NUMBER);
+		return;
+	}
+}
+
+function expr_string(type) {
+	console.log('expr_string');
+	termino_alfa(type);
+	while (token.type === TOK.SUM) {
+		nextToken();
+		termino_alfa(type);
+		emitByte(OP.ADD);
+	}
+}
+
+function termino_alfa(type) {
+	if (token.type === TOK.LPAR) {
+		nextToken();
+		expr_alfa(type);
+	} else if (lex.isValue(token)) {
+		emitConstant(token.value);
+		nextToken();
+	} else if (token.type === TOK.IDEN) {
 		var s = symbol.lookup(token.value);
 
 		if (s) {
-			if (lex.isNum(s.type)) {
+			if (lex.isAlpha(s)) {
 				s.value = token.value;
 			} else {
-
-				throwError(token, errorType.BAD_TYPE, s.type, token.type)
+				throwError(error.BAD_VAR_TYPE, s.type, type);
 			}
 		} else {
-			throwError(token, errorType.UNDEFINED)
+			throwError(error.UNDEFINED);
 		}
 		nextToken();
-	} else {
-		throwError(token, errorType.NOT_NUMBER);
-	}
-
-}
-
-function expr_alfa() {
-	termino_alfa();
-	while (token.type === tokT.SUM) {
-		termino_alfa();
-	}
-}
-
-function termino_alfa() {
-	if (token.type === tokT.TOKLPAR) {
-		nextToken();
-		expr_alfa();
-	} else if (lex.isAlpha) {
-		nextToken();
-	} else if (token.type === tokT.TOKIDEN) {
-		var s = symbol.lookup(tokIden.value);
-
-		if (s) {
-			if (lex.isAlpha(s.type)) {
-				s.value = token.value;
-			} else {
-				throwError(token, errorType.BAD_TYPE, s.type, token.type)
-			}
-		} else {
-			throwError(token, errorType.UNDEFINED)
-		}
-		nextToken();
-	} else { throwError(token, errorType.NOT_ALPHA); }
+	} else { throwError(error.NOT_ALPHA); return; }
 }
 
 function expr_bool() {
-	if (token.type === tokT.NOT) {
+	console.log('expr_bool');
+	parte_bool();
+	while (token.type === TOK.OR || token.type === TOK.AND) {
 		nextToken();
+		parte_bool();
 	}
+}
+
+function parte_bool() {
+	
 	termino_bool();
-	while (token.type === tokT.TOKOR || token.type === tokT.TOKAND) {
+
+	while (lex.isCompOp(token)) {
+		console.log(token.value);
+		
+		let op = token.type;
+		nextToken();
 		termino_bool();
+
+		switch (op) {
+			case TOK.EQUAL: emitByte(OP.EQUAL); break;
+			case TOK.LESS: emitByte(OP.LESS); console.log('solo menor');break;
+			case TOK.LESSEQ: emitByte(OP.LESS_EQ); console.log('menor o igual');
+			break;
+			case TOK.GREAT: emitByte(OP.GREATER); break;
+			case TOK.GREATEQ: emitByte(OP.GREATER_EQR); break;
+		}
 	}
 }
 
 function termino_bool() {
-	if (token.type === tokT.TOKLPAR) {
+	let notFlag = false
+	if (token.type === TOK.NOT) {
+		notFlag = true;
 		nextToken();
-		expr_num();
+	}
+
+	if (token.type === TOK.LPAR) {
+		nextToken();
+		expr_bool();
+		if (token.type === TOK.RPAR) {
+
+		} else { throwError(error.NOT_RPAR); return }
 	} else if (lex.isBool(token)) {
+		if (token.type === TOK.TRUE) emitByte(OP.TRUE);
+		else emitByte(OP.FALSE);
 		nextToken();
-	} else if (token.type === tokT.TOKIDEN) {
-		var s = symbol.lookup(tokIden.value);
-
-		if (s) {
-			if (lex.isBool(s.type)) {
-				s.value = token.value;
-			} else {
-				throwError(token, errorType.BAD_TYPE, s.type, token.type)
-			}
-		} else {
-			throwError(token, errorType.UNDEFINED)
-		}
-		nextToken();
-	} else {
-		throwError(token, errorType.NOT_BOOL);
+	}else {
+		expresion();
+		
 	}
-}
-
-function if_instr() {
-	expr_bool();
-	bloque();
-	while (token.type === tokT.TOKELIF) {
-		nextToken();
-		bloque();
-	}
-	if (token.type === tokT.TOKELSE) {
-		nextToken();
-		bloque;
-	}
+	if (notFlag) emitByte(OP.NOT);
 }
 
 function for_instr() {
-	if (token.type !== tokT.TOKLPAR) {
-		throwError(token, errorType.NOT_LPAR)
-	}
-}
+	console.log('for instruction');
 
-function while_instr() {
-	if (token.type !== tokT.TOKLPAR) {
-		throwError(token, errorType.NOT_LPAR)
-	}
+	if (token.type !== TOK.LPAR) { throwError(error.NOT_LPAR); return }
+	nextToken();
+
+	simple_instr();
+	sincronizar()
+
 	expr_bool();
+	if (token.type == TOK.SEMI) {
+		console.log('segundo');
+		nextToken();
+	}
+	else { throwError(error.NOT_SEMI); return }
+
+	simple_instr(true);
+	console.log('tercero');
+
+	if (token.type !== TOK.RPAR) { throwError(error.NOT_RPAR); return }
+	nextToken();
+
 	bloque();
 }
-
-function dowhile_instr() {
-	if (token.type !== tokT.TOKLPAR) {
-		throwError(token, errorType.NOT_LPAR)
-	}
-	expr_bool();
-	bloque();
-}
-
 
 function nextToken() {
-	token = tokens[++i];
+	token = tokenList[++i];
 	console.log(token);
+
 }
-function nextIs() {
-	return token()
+
+function peek(offset) {
+	return tokenList[i + offset];
+}
+
+function sincronizar() {
+	console.log('sync...');
+	//nextToken();
+	while (token.type !== TOK.END) {
+		if (peek(-1).type === TOK.SEMI) {
+			console.log('estabilizado por semi: ' + token.value);
+			return;
+		}
+		switch (token.type) {
+			case TOK.RCURL:
+			case TOK.FUN:
+			case TOK.TYPE_INTEGER: case TOK.TYPE_FLOAT: case TOK.TYPE_STRING: case TOK.TYPE_CHAR: case TOK.TYPE_BOOL:
+			case TOK.FOR:
+			case TOK.IF:
+			case TOK.WHILE:
+			case TOK.PRINT:
+				console.log('estabilizado: ' + token.value);
+				return;
+		}
+		nextToken();
+	}
+}
+
+function throwError(id, idType, exprType) {
+	err.throwError(token, id, idType, exprType);
+}
+
+function emitConstant(value) {
+	emitBytes(OP.CONSTANT, makeConstant(value));
+}
+function makeConstant(value) {
+	let constant = bytecode.addConstant(value);
+	if (constant > 256) {
+		throwError(token, errorType.TOO_CONSTANTS);
+		return 0;
+	}
+
+	return constant;
+}
+function emitByte(byte) {
+	bytecode.write(byte, token.line);
+}
+
+function emitBytes(byte1, byte2) {
+	bytecode.write(byte1, token.line);
+	bytecode.write(byte2, token.line);
 }

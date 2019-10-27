@@ -1,0 +1,22 @@
+module.exports = {
+	RETURN: 1,
+	CONSTANT: 2,
+	TRUE: 3,
+	FALSE: 4,
+	NULL: 5,
+
+	ADD: 6,
+	SUBTRACT: 7,
+	MULTIPLY: 8,
+	DIVIDE: 9,
+	EXPONEN: 10,
+
+	NOT: 11,
+	EQUAL: 12,
+	UNEQUAL: 13,  
+	GREATER: 14,
+	GREATER_EQ: 15,
+	LESS: 16,
+	LESS_EQ: 17,
+	//LONG_CONSTANT?
+}

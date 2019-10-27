@@ -40,7 +40,6 @@ module.exports = {
 var ch = '';
 var linea = '';
 var i = '0';
-var lastToken = tokenGen.other(0, 0);
 
 function scanLine(source, lineN) {
 	ch = ' '
@@ -93,21 +92,18 @@ function getToken(ln) {
 			ch = linea[++i];
 		}
 
-		if (isFloat) {
-			token = tokenGen.float(lexeme, ln);
-		} else {
-			token = tokenGen.integer(lexeme, ln);
-		}
+		if (isFloat) token = tokenGen.float(lexeme, ln);
+		else token = tokenGen.integer(lexeme, ln);
 	} else if (ch === '"') {
 		ch = linea[++i];
-		while (ch != '"') {
+		while (ch && ch !== '"') {
 			lexeme += ch;
 			ch = linea[++i];
 		}
 		token = tokenGen.string(lexeme, ln);
 		ch = linea[++i];
 
-	} else if (ch === "'") {
+	} else if (ch && ch === "'") {
 		ch = linea[++i];
 		while (ch != "'") {
 			lexeme += ch;
@@ -144,6 +140,12 @@ function getToken(ln) {
 				token = tokenGen.other('=>', ln);
 				ch = linea[++i];
 			} else token = tokenGen.specialSymbol('=', ln);
+		} else if (ch === '!') {
+			ch = linea[++i];
+			if (ch === '=') {
+				token = tokenGen.other('!=', ln);
+				ch = linea[++i];
+			} else token = tokenGen.specialSymbol('!', ln);
 		} else if (ch === '|') {
 			ch = linea[++i];
 			if (ch === '|') {

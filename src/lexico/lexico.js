@@ -1,62 +1,63 @@
 
 const Type = {
 	NULL: 0,
-	TOKBEGIN: 1,
-	TOKEND: 2,
+	BEGIN: 1,
+	END: 2,
 
-	TOKTINTEGER: 3,
-	TOKTFLOAT: 6,
-	TOKTSTRING: 4,
-	TOKTCHAR: 51,
-	TOKTBOOL: 5,
+	TYPE_INTEGER: 3,
+	TYPE_FLOAT: 4,
+	TYPE_STRING: 5,
+	TYPE_CHAR: 6,
+	TYPE_BOOL: 7,
 
-	INTEGER: 7,
-	FLOAT: 11,
-	STRING: 8,
-	CHAR: 10,
-	BOOL: 9,
-	TOKTRUE: 12,
-	TOKFALSE: 13,
+	INTEGER: 8,
+	FLOAT: 9,
+	STRING: 10,
+	CHAR: 11,
+	BOOL: 12,
+	TRUE: 13,
+	FALSE: 14,
 
-	TOKOR: 14,
-	TOKAND: 15,
-	TOKIDEN: 16,
-	TOKIF: 17,
-	TOKELIF: 18,
-	TOKELSE: 19,
-	TOKFOR: 52,
-	TOKWHILE: 20,
-	TOKDO: 53,
-	TOKRETURN: 21,
+	IDEN: 17,
+	IF: 18,
+	ELIF: 19,
+	ELSE: 20,
+	FOR: 21,
+	WHILE: 22,
+	DO: 23,
+	RETURN: 24,
 
-	TOKLPAR: 22,
-	TOKRPAR: 23,
-	TOKSEMI: 24,
-	TOKCOMMA: 25,
-	TOKSINQOUTE: 26,
-	TOKDOUQUOTE: 27,
-	TOKLCURL: 28,
-	TOKRCURL: 29,
-	TOKLBRACKET: 30,
-	TOKRBRACKET: 31,
-	TOKFUN: 32,
-	ARROW: 33,
+	LPAR: 25,
+	RPAR: 26,
+	SEMI: 27,
+	COMMA: 28,
+	SINQOUTE: 29,
+	DOUQUOTE: 30,
+	LCURL: 31,
+	RCURL: 32,
+	LBRACKET: 33,
+	RBRACKET: 34,
+	FUN: 35,
+	ARROW: 36,
+	PRINT: 37,
+	READ: 38,
 
-	SUM: 34,
-	SUB: 35,
-	MUL: 36,
-	DIV: 37,
-	POW: 38,
-	ASSIGN: 39,
-	LESS: 40,
-	GREAT: 41,
-	EQUAL: 42,
-	LESSEQ: 43,
-	GREATEQ: 44,
-	UNIPLUS: 45,
-	UNINEG: 46,
-	NOT: 47,
-	MOD: 50
+	SUM: 39,
+	SUB: 40,
+	MUL: 41,
+	DIV: 42,
+	POW: 43,
+	ASSIGN: 44,
+	LESS: 45,
+	GREAT: 46,
+	EQUAL: 47,
+	UNEQUAL: 48,
+	LESSEQ: 49,
+	GREATEQ: 50,
+	OR: 15,
+	AND: 16,
+	NOT: 51,
+	MOD: 52
 }
 
 module.exports.gens = {
@@ -71,33 +72,21 @@ module.exports.gens = {
 		return { type: resWordTok[id], value: resWordLex[id], line: line };
 	},
 	other: function (val, line) {
-		var type;
+		let type;
 		switch (val) {
-			case '<=':
-				type = Type.LESSEQ;
-				break;
-			case '>=':
-				type = Type.GREATEQ;
-				break;
-			case '==':
-				type = Type.EQUAL;
-				break;
-			case '=>':
-				type = Type.ARROW;
-				break;
-			case '||':
-				type = Type.TOKOR;
-				break;
-			case '&&':
-				type = Type.TOKAND;
-				break;
-			default:
-				type = Type.NULL;
+			case '==': type = Type.EQUAL; break;
+			case '!=': type = Type.UNEQUAL; break;
+			case '<=': type = Type.LESSEQ; break;
+			case '>=': type = Type.GREATEQ; break;
+			case '=>': type = Type.ARROW; break;
+			case '||': type = Type.OR; break;
+			case '&&': type = Type.AND; break;
+			default: type = Type.NULL;
 		}
 		return { type: type, value: val, line: line };
 	},
 	iden: function (val, line) {
-		return { type: Type.TOKIDEN, value: val, line: line };
+		return { type: Type.IDEN, value: val, line: line };
 	},
 	integer: function (val, line) {
 		return { type: Type.INTEGER, value: val, line: line };
@@ -112,46 +101,24 @@ module.exports.gens = {
 		return { type: Type.CHAR, value: val, line: line };
 	}
 }
+
 module.exports.utils = {
 	types: Type,
-	empyToken: function () {
+	emptyToken: function () {
 		return { type: Type.NULL, value: '', line: 0 };
 	},
-	isSameType: function (idType, valueType) {
+	getType: function (idType) {
 		switch (idType) {
-			case Type.TOKTINTEGER:
-				return (valueType == Type.INTEGER);
-			case Type.TOKTFLOAT:
-				return valueType == Type.FLOAT;
-			case Type.TOKTBOOL:
-				return (valueType == Type.TOKTRUE || valueType == Type.TOKFALSE);
-			case Type.TOKTSTRING:
-				return valueType == Type.STRING;
-			case Type.TOKTCHAR:
-				return valueType == Type.CHAR;
+			case Type.TYPE_INTEGER: return Type.INTEGER;
+			case Type.TYPE_FLOAT: return Type.FLOAT;
+			case Type.TYPE_BOOL: return Type.BOOL;
+			case Type.TYPE_STRING: return Type.STRING;
+			case Type.TYPE_CHAR: return Type.CHAR;
 		}
 	},
-	getValueType: function (idType) {
-		switch (idType) {
-			case Type.TOKTINTEGER:
-				return Type.INTEGER;
-			case Type.TOKTFLOAT:
-				return Type.FLOAT;
-			case Type.TOKTBOOL:
-				return Type.BOOL;
-			case Type.TOKTSTRING:
-				return Type.STRING;
-			case Type.TOKTCHAR:
-				return Type.CHAR;
-		}
-	},
-	isTypeTok: function (tokType) {
-		switch (tokType) {
-			case Type.TOKTINTEGER:
-			case Type.TOKTFLOAT:
-			case Type.TOKTBOOL:
-			case Type.TOKTSTRING:
-			case Type.TOKTCHAR:
+	isTypeTok: function (tok) {
+		switch (tok.type) {
+			case Type.TYPE_INTEGER: case Type.TYPE_FLOAT: case Type.TYPE_BOOL: case Type.TYPE_STRING: case Type.TYPE_CHAR:
 				return true;
 			default:
 				return false;
@@ -159,36 +126,38 @@ module.exports.utils = {
 	},
 	isValue: function (tok) {
 		switch (tok.type) {
-			case Type.INTEGER:
-			case Type.FLOAT:
-			case Type.BOOL:
-			case Type.STRING:
-			case Type.CHAR:
+			case Type.INTEGER: case Type.FLOAT: case Type.BOOL: case Type.STRING: case Type.CHAR:
 				return true;
 			default:
 				return false;
 		}
 	},
 	isAlpha: function (tok) {
-		return (tok.type == Type.CHAR || tok.type == Type.STRING);
+		return (tok.type === Type.CHAR || tok.type === Type.STRING);
 	},
 	isNum: function (tok) {
-		return (tok.type == Type.INTEGER || tok.type == Type.FLOAT);
+		return (tok.type === Type.INTEGER || tok.type === Type.FLOAT || tok.type === Type.CHAR);
 	},
 	isBool: function (tok) {
-		return (tok.type == Type.TOKTRUE || tok.type == Type.TOKFALSE);
+		return (tok.type === Type.TRUE || tok.type === Type.FALSE);
+	},
+	isCompOp: function (tok) {
+		switch (tok.type) {
+			case Type.LESS: case Type.GREAT: case Type.EQUAL: case Type.UNEQUAL: case Type.LESSEQ: case Type.GREATEQ:
+				return true;
+			default:
+				return false;
+		}
 	},
 	str: function (token) {
 		return `${token.value} -> ${token.type}`;
 	}
 }
-
-
 //AGREGAR TODOS
-const resWordLex = ["begin", "bool", "char", "end", "false", "float", "fun", "if", "int", "return", "string", "true", "while"
-];
-const resWordTok = [Type.TOKBEGIN, Type.TOKTBOOL, Type.TOKTCHAR, Type.TOKEND, Type.TOKFALSE, Type.TOKTFLOAT, Type.TOKFUN,
-Type.TOKIF, Type.TOKTINTEGER, Type.TOKRETURN, Type.TOKTSTRING, Type.TOKTRUE, Type.TOKWHILE];
+const resWordLex = ['begin', 'bool', 'char', 'do', ' elif', 'else', 'end', 'false', 'float', 'for', 'fun', 'if', 'int', 'return', 'string', 'true', 'while'];
+const resWordTok = [Type.BEGIN, Type.TYPE_BOOL, Type.TYPE_CHAR, Type.DO, Type.ELIF, Type.ELSE, Type.END, Type.FALSE, Type.TYPE_FLOAT, Type.FOR, Type.FUN,
+Type.IF, Type.TYPE_INTEGER, Type.RETURN, Type.TYPE_STRING, Type.TRUE, Type.WHILE];
+
 var specialSymbolTok = new Array(128).fill(0);
 
 function binarySearchResWord(value) {
@@ -210,22 +179,23 @@ function binarySearchResWord(value) {
 function initializeSpecialSymbols() {
 	specialSymbolTok[0] = true;
 
+	specialSymbolTok[33] = Type.NOT;
 	specialSymbolTok[37] = Type.MOD;
-	specialSymbolTok[40] = Type.TOKLPAR;
-	specialSymbolTok[41] = Type.TOKRPAR;
+	specialSymbolTok[40] = Type.LPAR;
+	specialSymbolTok[41] = Type.RPAR;
 	specialSymbolTok[42] = Type.MUL;
 	specialSymbolTok[43] = Type.SUM;
-	specialSymbolTok[44] = Type.TOKCOMMA;
+	specialSymbolTok[44] = Type.COMMA;
 	specialSymbolTok[45] = Type.SUB;
 	specialSymbolTok[47] = Type.DIV;
-	specialSymbolTok[59] = Type.TOKSEMI;
+	specialSymbolTok[59] = Type.SEMI;
 	specialSymbolTok[60] = Type.LESS;
 	specialSymbolTok[61] = Type.ASSIGN;
 	specialSymbolTok[62] = Type.GREAT;
 
-	specialSymbolTok[91] = Type.TOKLBRACKET;
-	specialSymbolTok[93] = Type.TOKRBRACKET;
+	specialSymbolTok[91] = Type.LBRACKET;
+	specialSymbolTok[93] = Type.RBRACKET;
 	specialSymbolTok[94] = Type.POW;
-	specialSymbolTok[123] = Type.TOKLCURL;
-	specialSymbolTok[125] = Type.TOKRCURL;
+	specialSymbolTok[123] = Type.LCURL;
+	specialSymbolTok[125] = Type.RCURL;
 }

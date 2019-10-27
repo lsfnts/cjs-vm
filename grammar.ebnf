@@ -4,40 +4,34 @@ bloque ::= '{' lista_instr '}'
 
 lista_instr ::= instr ( instr)*
 
-instr ::= (decla ';'| asign ';'| if_instr | itera_instr | fun_def)
+instr ::= simple_instr | complex_instr
 
-decla ::= TIPO ID ('=' expr (',' ID '=' expr)*)? ';'
+simple_instr ::= ( |decla | asign) ';'
 
+complex_instr ::= if_instr | itera_instr | fun_def
+
+decla ::= TIPO asign (',' asign)*
 asign ::= ID '=' expr
 
-expr ::= (expr_num | expr_alfa | expr_bool)| '('(expr_num | expr_alfa | expr_bool)')'
-
+expr ::= (expr_num | expr_alfa | expr_bool)
 expr_num ::= factor (('-'|'+') factor)*
-
-factor ::= potencia(('*'|'/'|'%')potencia)*
-
+factor ::= potencia(('*'|'/')potencia)*
 potencia ::= numero(('^')numero)*
-
 numero ::= dato_num | ID | '('expr_num')'
-
 expr_alfa ::= (termino_alfa ( '+' termino_alfa)*)
-
 termino_alfa ::= dato_alfa | ID | '('expr_alfa')'
+expr_bool ::= parte_bool (('&&'|'||') parte_bool)*
 
-expr_bool ::= '!'? termino_bool (('&&'|'||') termino_bool)*
+parte_bool ::= '!'? termino_bool (COMP termino_bool)*
 
-termino_bool ::= BOOL|ID|'('expr_bool')'
+termino_bool ::= BOOL|ID|expr
+
 
 if_instr ::= 'if' expr_bool bloque elif_instr* else_instr?
-
 elif_instr ::= 'elif' expr_bool bloque
-
 else_instr ::= 'else' bloque
-
 itera_instr ::= for_instr | while_instr | dowhile_instr
-
-for_instr ::= 'for' '(' expr? ';' expr? ';' expr? ')' bloque
+for_instr ::= 'for' '(' init? ';' expr_bool? ';' expr? ')' bloque
 
 fun_def ::= 'fun' '(' (arg(','arg)*)? ')' '=>' bloque
-
 arg ::= TIPO ID
