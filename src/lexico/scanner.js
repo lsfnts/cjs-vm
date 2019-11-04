@@ -136,7 +136,7 @@ function getToken(ln) {
 			if (ch === '=') {
 				token = tokenGen.other('==', ln);
 				ch = linea[++i];
-			} else if (ch === '=>') {
+			} else if (ch === '>') {
 				token = tokenGen.other('=>', ln);
 				ch = linea[++i];
 			} else token = tokenGen.specialSymbol('=', ln);

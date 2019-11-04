@@ -9,17 +9,19 @@ module.exports = {
 			offset = module.exports.disassembleInstruction(chunk, offset);
 		}
 		console.log(`===================`);
+		console.log('constants:');
+		console.log(chunk.constants.toString());
+		console.log(`===================`);
 	},
 
 	disassembleInstruction(chunk, offset) {
-		if (chunk.getLine(offset) === chunk.getLine(offset - 1)) {
-			process.stdout.write("   | ");
+		let line = chunk.getLine(offset);
+		if (line === chunk.getLine(offset - 1)) {
+			process.stdout.write(`${format('|', Math.max(2, Math.log10(line)))} `);
 		} else {
-			process.stdout.write(`${format(chunk.getLine(offset), 4)} `);
+			process.stdout.write(`${format(chunk.getLine(offset), Math.max(2, Math.log10(line)))} `);
 		}
 		switch (chunk.code[offset]) {
-			case OP.RETURN:
-				return module.exports.simpleInstruction("OP.RETURN", offset);
 			case OP.CONSTANT:
 				return module.exports.constantInstruction("OP.CONSTANT", chunk, offset);
 			case OP.NULL:
@@ -60,18 +62,38 @@ module.exports = {
 				return module.exports.simpleInstruction("OP.POP", offset);
 			case OP.POP_N:
 				return module.exports.constantInstruction("OP.POP_N", chunk, offset);
-			case OP.DEFINE_GLOBAL:
-				return module.exports.constantInstruction("OP.DEFINE_GLOBAL", chunk, offset);
-			case OP.GET_VAR:
-				return module.exports.byteInstruction("OP.GET_VAR", chunk, offset);
-			case OP.LONG_GET_VAR:
-				return module.exports.byte2Instruction("OP.LONG_GET_VAR", chunk, offset);
 			case OP.SET_VAR:
 				return module.exports.byteInstruction("OP.SET_VAR", chunk, offset);
 			case OP.LONG_SET_VAR:
 				return module.exports.byte2Instruction("OP.LONG_SET_VAR", chunk, offset);
+			case OP.SET_VAR_FUN:
+				return module.exports.byteInstruction("OP.SET_VAR_FUN", chunk, offset);
+			case OP.LONG_SET_VAR_FUN:
+				return module.exports.byte2Instruction("OP.LONG_SET_VAR_FUN", chunk, offset);
+			case OP.GET_VAR:
+				return module.exports.byteInstruction("OP.GET_VAR", chunk, offset);
+			case OP.LONG_GET_VAR:
+				return module.exports.byte2Instruction("OP.LONG_GET_VAR", chunk, offset);
+			case OP.GET_VAR_FUN:
+				return module.exports.byteInstruction("OP.GET_VAR_FUN", chunk, offset);
+			case OP.LONG_GET_VAR_FUN:
+				return module.exports.byte2Instruction("OP.LONG_GET_VAR_FUN", chunk, offset);
+			case OP.JUMP_IF_FALSE:
+				return module.exports.jumpInstruction("OP.JUMP_IF_F", chunk, offset, 1);
+			case OP.JUMP:
+				return module.exports.jumpInstruction("OP.JUMP", chunk, offset, 1);
+			case OP.LOOP:
+				return module.exports.jumpInstruction("OP.LOOP", chunk, offset, -1);
+			case OP.CALL:
+				return module.exports.byteInstruction("OP.CALL", chunk, offset);
+			case OP.SET_RETURN:
+				return module.exports.simpleInstruction("OP.SET_RETURN", offset);
+			case OP.RETURN_VALUE:
+				return module.exports.simpleInstruction("OP.RETURN_VALUE", offset);
+			case OP.RETURN:
+				return module.exports.simpleInstruction("OP.RETURN", offset);
 			default:
-				console.log(`${format(offset)} unknow`);
+				console.log(`${format(offset)} ${chunk.code[offset]}`);
 				return offset + 1;
 		}
 	},
@@ -97,6 +119,12 @@ module.exports = {
 		let slot = (chunk.code[offset + 1] << 8) | chunk.code[offset + 2];
 		console.log(`${format(offset)} ${formatInst(name)} ${format(slot)}`);
 		return offset + 3;
+	},
+
+	jumpInstruction(name, chunk, offset, sign) {
+		let jump = (chunk.code[offset + 1] << 8) | chunk.code[offset + 2];
+		console.log(`${format(offset)} ${formatInst(name)} -> ${format(offset + 3 + sign * jump)}`);
+		return offset + 3;
 	}
 
 }
@@ -109,6 +137,7 @@ function format(value, n, p) {
 	else return value.toString().padStart(4, 0);
 }
 
-function formatInst(value) {
-	return value.padEnd(12);
+function formatInst(value, n) {
+	if (n) return value.padEnd(n);
+	return value.padEnd(16);
 }

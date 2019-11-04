@@ -15,26 +15,25 @@ module.exports = class VM {
 	interpret(bytecode) {
 		this.bytecode = bytecode;
 		this.stack = [];
-		this.globals = new Map();
+		this.frames = [];
 
 		this.ip = 0;
+		if (bytecode.hasError) return;
 		return this.run();
 	}
 
 	run() {
-		let op;
-		do {
-			this._debug_trace();
+		let op = 1;
+		while (op) {
+			//this._debug_trace();
 			op = this._readByte();
 
 			switch (op) {
 				case OP.CONSTANT:
-					let constant = this._readConstant();
-					this.stack.push(constant);
+					this.stack.push(this._readConstant());
 					break;
 				case OP.LONG_CONSTANT:
-					let longConstant = this._readLongConstant();
-					this.stack.push(longConstant);
+					this.stack.push(this._readLongConstant());
 					break;
 				case OP.NEGATE: this.stack.push(-this.stack.pop());
 					break;
@@ -49,40 +48,81 @@ module.exports = class VM {
 				case OP.PRINT: console.log(this.stack.pop()); break;
 				case OP.READ: console.log(this.stack.pop()); break;
 				case OP.POP: this.stack.pop(); break;
-				case OP.GET_VAR:
-					let slot1 = this._readByte();
-					this.stack.push(this.stack[slot1]);
-					break;
-				case OP.LONG_GET_VAR:
-					let slot2 = this._read2Bytes();
-					this.stack.push(this.stack[slot2]);
+				case OP.POP_N:
+					let n = this._readConstant();
+					while (n--) this.stack.pop();
 					break;
 				case OP.SET_VAR:
-					let slot3 = this._readByte();
-					//quitar pop
-					this.stack[slot3] = this.stack.pop();
+					this.stack[this._readByte()] = this.stack.pop();
 					break;
 				case OP.LONG_SET_VAR:
-					let slot4 = this._read2Bytes();
-					//quitar pop
-					this.stack[slot4] = this.stack.pop();
+					this.stack[this._readShort()] = this.stack.pop();
 					break;
+				case OP.SET_VAR_FUN:
+					this.stack[this._readByte() + this.frames[this.frames.length - 2]] = this.stack.pop();
+					break;
+				case OP.LONG_SET_VAR_FUN:
+					this.stack[this._readShort() + this.frames[this.frames.length - 2]] = this.stack.pop();
+					break;
+				case OP.GET_VAR:
+					this.stack.push(this.stack[this._readByte()]);
+					break;
+				case OP.LONG_GET_VAR:
+					this.stack.push(this.stack[this._readShort()]);
+					break;
+				case OP.GET_VAR_FUN:
+					this.stack.push(this.stack[this._readByte() + this.frames[this.frames.length - 2]]);
+					break;
+				case OP.LONG_GET_VAR_FUN:
+					this.stack.push(this.stack[this._readShort() + this.frames[this.frames.length - 2]]);
+					break;
+				case OP.JUMP_IF_FALSE:
+					if (!this.stack.pop()) this.ip += 2 + this._readShortNo();
+					else this.ip += 2;
+					break;
+				case OP.JUMP:
+					this.ip += 2 + this._readShortNo();
+					break;
+				case OP.LOOP:
+					this.ip -= this._readShortNo() - 2;
+					break;
+				case OP.CALL:
+					this.frames.push(this.stack.length - this._readByte() - 1);
+					this.frames.push(this.ip);
+					this.ip = this.stack.pop();
+					console.log(this.frames);
+					break;
+				case OP.SET_RETURN:
+					this.frames.push(this.stack.pop());
+					break;
+				case OP.RETURN_VALUE:
+					this.stack.push(this.frames.pop())
 				case OP.RETURN:
-					return true;
+					this.ip = this.frames.pop();
+					this.frames.pop();
+					break;
 				default:
 					//console.log(this.bytecode.constants);
 
 					return false;
 			}
-		} while (op);
+		}
+	}
+
+	_peek(offset) {
+		return this.stack[this.stack.length - offset - 1];
 	}
 
 	_readByte() {
 		return this.bytecode.code[this.ip++];
 	}
 
-	_read2Bytes() {
+	_readShort() {
 		return (this.bytecode.code[this.ip++] << 8) | this.bytecode.code[this.ip++];
+	}
+
+	_readShortNo() {
+		return (this.bytecode.code[this.ip] << 8) | this.bytecode.code[this.ip + 1];
 	}
 
 	_readConstant() {
@@ -90,7 +130,7 @@ module.exports = class VM {
 	}
 
 	_readLongConstant() {
-		return this.bytecode.constants[this._read2Bytes()];
+		return this.bytecode.constants[this._readShort()];
 	}
 
 	_binaryOp(op) {
@@ -137,7 +177,6 @@ module.exports = class VM {
 		db.disassembleInstruction(this.bytecode, this.ip);
 	}
 }
-
-var binaryOps = {
-
+function newCallFrame(funcion, ip, slots) {
+	return { funcion: funcion, ip: ip, slots: slots }
 }

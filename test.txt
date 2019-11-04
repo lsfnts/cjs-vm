@@ -1,8 +1,10 @@
-begin {
-bool a = 1>0;
-if(a){
-    string s = "hola mundo";
-    cjprint s;
+begin
+bool b = true;
+if(b) {
+    fun hola() => string {
+    return "dentro del if";
 }
-cjprint s;
-} End
+
+}
+cjprint hola();
+end

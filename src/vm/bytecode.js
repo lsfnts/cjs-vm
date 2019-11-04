@@ -16,6 +16,7 @@ module.exports = class Bytecode {
 		this.constants = [];
 
 
+
 	}
 
 	write(byte, line) {
@@ -57,5 +58,18 @@ module.exports = class Bytecode {
 	//normal array
 	addConstant(value) {
 		return (this.constants.includes(value)) ? this.constants.indexOf(value) : this.constants.push(value) - 1;
+	}
+
+	setHasError(){
+		this.hasError = true;
+	}
+}
+
+class funcion {
+	constructor(name,base,arity,depth) {
+		this.name = name;
+		this.base = base;
+		this.arity = arity;
+		this.depth = depth;
 	}
 }

@@ -17,10 +17,15 @@ const types = {
     NOT_SEMI: 15,
     NOT_NUMBER: 16,
     NOT_COMPARISON: 17,
-    VAR_EXIST: 18,
+    VAR_EXISTS: 18,
     NOT_ALPHA: 19,
     TOO_VAR: 20,
     VAR_INIT: 21,
+    NOT_FUN: 22,
+    TOO_MUCH_CODE: 23,
+    RET_OUTSIDE: 24,
+    NOT_EMPTY_RETURN: 25,
+    VOID_FUNCTION: 26,
 }
 
 const valueTypes = new Map;
@@ -43,15 +48,17 @@ module.exports = {
                 case 11:
                     expected = 'char';
                 default:
-                        expected = 'otro';
+                    expected = 'otro';
                     break;
             }
             console.log(`${typesString[type]} tipo variable: ${valueTypes.get(idType)}, tipo esperado: ${expected}. en la linea ${token.line}`);
         } else if (type === types.UNDEFINED) {
             console.log(`identificador ${token.value} no definido en la linea ${token.line}`);
-        } else if(type === types.VAR_EXIST) {
+        } else if (type === types.VAR_EXISTS) {
             console.log(`identificador ${token.value} ya en uso en el scope actual en la linea ${token.line}`);
-        }else {
+        } else if (type === types.NOT_FUN) {
+            console.log(`${token.value} no es una funcion en la linea ${token.line}`);
+        } else {
             console.log(`${typesString[type]} en la linea ${token.line}`)
         }
 
@@ -73,15 +80,19 @@ typesString = [
     'se esperaba un identificador',                         //10
     'se esperaba un tipo (int|float|char|string|bool)',     //11
     'se esperaba ->',                                       //12
-    'identificador no definido',                            //13
+    '',                                                     //13
     'operador no valido con strings',                       //14
     'se esperaba ;',                                        //15
     'se esperaba un numero',                                //16
     'se esperaba un operador de comparacion',               //17
-    'la variable ya esta definida en el scope actual',      //18
+    '',                                                     //18
     'se esperaba string o char',                            //19
     'se excedio el maximo de variables',                    //20
-    'no se puede leer una variable durante su inicializacion'//21
-    
+    'no se puede leer una variable durante su inicializacion',//21
+    '',                                                     //22
+    'demasiado codigo dentro de una instruccion de control de flujo',//23
+    'return afuera de una funcion',                         //24
+    'esta funcion no debe retornar ningun valor',           //25
+    'esta funcion no retorna ningun valor',                 //26
 ]
 

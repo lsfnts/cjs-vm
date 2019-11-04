@@ -2,7 +2,7 @@
 "use strict";
 const program = require('commander');
 const lex = require('../src/lexico/scanner');
-const parser = require('../src/sintactico/parser2');
+const parser = require('../src/sintactico/parser');
 //const { parser } = require('stream-json');
 const db = require('../src/vm/debug');
 const Bytecode = require('../src/vm/bytecode');
@@ -59,9 +59,8 @@ program
 
 		db.dissasemble(chunk, 'prueba');
 
-		console.log('corriendo...');
-		vm.interpret(chunk);
-
+		//console.log('corriendo...');
+		//vm.interpret(chunk);
 	}).on('--help', function () {
 	});
 

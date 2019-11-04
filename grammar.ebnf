@@ -1,12 +1,16 @@
-programa ::= 'begin' bloque 'end'
-
-bloque ::= '{' lista_instr '}'
+programa ::= 'begin' lista_instr 'end'
 
 lista_instr ::= instr ( instr)*
 
 instr ::= simple_instr | complex_instr | bloque
 
-simple_instr ::= ( |decla | asign) ';'
+bloque ::= '{' lista_instr '}'
+
+simple_instr ::= ( |decla | asign | print_instr | read_instr) ';'
+
+print_instr ::= 'cjprint' expr_alfa
+
+read_instr ::= 'cjread' ID
 
 complex_instr ::= if_instr | itera_instr | fun_def
 
@@ -31,7 +35,7 @@ if_instr ::= 'if' expr_bool bloque elif_instr* else_instr?
 elif_instr ::= 'elif' expr_bool bloque
 else_instr ::= 'else' bloque
 itera_instr ::= for_instr | while_instr | dowhile_instr
-for_instr ::= 'for' '(' init? ';' expr_bool? ';' expr? ')' bloque
+for_instr ::= 'for' '(' (decla|asign)? ';' expr_bool? ';' expr? ')' bloque
 
-fun_def ::= 'fun' '(' (arg(','arg)*)? ')' '=>' bloque
-arg ::= TIPO ID
+fun_def ::= 'fun' '(' (param(','param)*)? ')' '=>' bloque
+param ::= TIPO ID

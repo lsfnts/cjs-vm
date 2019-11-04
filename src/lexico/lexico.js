@@ -9,55 +9,56 @@ const Type = {
 	TYPE_STRING: 5,
 	TYPE_CHAR: 6,
 	TYPE_BOOL: 7,
+	VOID: 8,
 
-	INTEGER: 8,
-	FLOAT: 9,
-	STRING: 10,
-	CHAR: 11,
-	BOOL: 12,
-	TRUE: 13,
-	FALSE: 14,
+	INTEGER: 9,
+	FLOAT: 10,
+	STRING: 11,
+	CHAR: 12,
+	BOOL: 13,
+	TRUE: 14,
+	FALSE: 15,
 
-	IDEN: 17,
-	IF: 18,
-	ELIF: 19,
-	ELSE: 20,
-	FOR: 21,
-	WHILE: 22,
-	DO: 23,
-	RETURN: 24,
+	IDEN: 16,
+	IF: 17,
+	ELIF: 18,
+	ELSE: 19,
+	FOR: 20,
+	WHILE: 21,
+	DO: 22,
+	RETURN: 23,
 
-	LPAR: 25,
-	RPAR: 26,
-	SEMI: 27,
-	COMMA: 28,
-	SINQOUTE: 29,
-	DOUQUOTE: 30,
-	LCURL: 31,
-	RCURL: 32,
-	LBRACKET: 33,
-	RBRACKET: 34,
-	FUN: 35,
-	ARROW: 36,
-	PRINT: 37,
-	READ: 38,
+	LPAR: 24,
+	RPAR: 25,
+	SEMI: 26,
+	COMMA: 27,
+	SINQOUTE: 28,
+	DOUQUOTE: 29,
+	LCURL: 30,
+	RCURL: 31,
+	LBRACKET: 32,
+	RBRACKET: 33,
+	FUN: 34,
+	ARROW: 35,
+	PRINT: 36,
+	READ: 37,
 
-	SUM: 39,
-	SUB: 40,
-	MUL: 41,
-	DIV: 42,
-	POW: 43,
-	ASSIGN: 44,
-	LESS: 45,
-	GREAT: 46,
-	EQUAL: 47,
-	UNEQUAL: 48,
-	LESSEQ: 49,
-	GREATEQ: 50,
-	OR: 15,
-	AND: 16,
-	NOT: 51,
-	MOD: 52
+	SUM: 38,
+	SUB: 39,
+	MUL: 40,
+	DIV: 41,
+	POW: 42,
+	ASSIGN: 43,
+	LESS: 44,
+	GREAT: 45,
+	EQUAL: 46,
+	UNEQUAL: 47,
+	LESSEQ: 48,
+	GREATEQ: 49,
+	OR: 50,
+	AND: 51,
+	NOT: 52,
+	MOD: 53
 }
 
 module.exports.gens = {
@@ -114,6 +115,7 @@ module.exports.utils = {
 			case Type.TYPE_BOOL: return Type.BOOL;
 			case Type.TYPE_STRING: return Type.STRING;
 			case Type.TYPE_CHAR: return Type.CHAR;
+			default: return Type.NULL;
 		}
 	},
 	isTypeTok: function (tok) {
@@ -154,26 +156,30 @@ module.exports.utils = {
 	}
 }
 //AGREGAR break
-const resWordLex = ['begin', 'bool', 'char', 'cjprint','cjread' , 'do', ' elif', 'else', 'end', 'false', 'float', 'for', 'fun', 'if', 'int', 'return', 'string', 'true', 'while'];
+const resWordLex = ['begin', 'bool', 'char', 'cjprint', 'cjread', 'do', 'elif', 'else', 'end', 'false', 'float', 'for', 'fun', 'if', 'int', 'return', 'string', 'true', 'void', 'while'];
 const resWordTok = [Type.BEGIN, Type.TYPE_BOOL, Type.TYPE_CHAR, Type.PRINT, Type.READ, Type.DO, Type.ELIF, Type.ELSE, Type.END, Type.FALSE, Type.TYPE_FLOAT, Type.FOR, Type.FUN,
-Type.IF, Type.TYPE_INTEGER, Type.RETURN, Type.TYPE_STRING, Type.TRUE, Type.WHILE];
+Type.IF, Type.TYPE_INTEGER, Type.RETURN, Type.TYPE_STRING, Type.TRUE, Type.VOID, Type.WHILE];
 
 var specialSymbolTok = new Array(128).fill(0);
 
 function binarySearchResWord(value) {
 	var left = 0, right = resWordLex.length - 1, middle = Math.floor((right + left) / 2);
 
-	while (resWordLex[middle] != value && left < right) {
 
+	while (resWordLex[middle] !== value && left <= right) {
+		let vs = middle;
+		if (value === 'do') {
+		}
 		if (value < resWordLex[middle]) {
 			right = middle - 1;
 		} else if (value > resWordLex[middle]) {
 			left = middle + 1;
 		}
 		middle = Math.floor((right + left) / 2);
+
 	}
 
-	return (resWordLex[middle] != value) ? -1 : middle;
+	return (resWordLex[middle] !== value) ? -1 : middle;
 }
 
 function initializeSpecialSymbols() {
