@@ -79,7 +79,7 @@ module.exports.gens = {
 			case '!=': type = Type.UNEQUAL; break;
 			case '<=': type = Type.LESSEQ; break;
 			case '>=': type = Type.GREATEQ; break;
-			case '=>': type = Type.ARROW; break;
+			case '->': type = Type.ARROW; break;
 			case '||': type = Type.OR; break;
 			case '&&': type = Type.AND; break;
 			default: type = Type.NULL;

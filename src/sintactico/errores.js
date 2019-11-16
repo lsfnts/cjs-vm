@@ -2,7 +2,7 @@ const types = {
     NOT_BEGIN: 0,
     NOT_IDEN: 1,
     BAD_VAR_TYPE: 2,
-    NOT_ARR_SIZE: 3,
+    NOT_PARAM: 3,
     NOT_LPAR: 4,
     NOT_RPAR: 5,
     NOT_LCURL: 6,
@@ -26,14 +26,15 @@ const types = {
     RET_OUTSIDE: 24,
     NOT_EMPTY_RETURN: 25,
     VOID_FUNCTION: 26,
+    NOT_ARRAY: 27,
 }
 
 const valueTypes = new Map;
-valueTypes.set(8, 'int');
-valueTypes.set(9, 'float');
-valueTypes.set(10, 'string');
-valueTypes.set(11, 'char');
-valueTypes.set(12, 'bool');
+valueTypes.set(9, 'int');
+valueTypes.set(10, 'float');
+valueTypes.set(11, 'string');
+valueTypes.set(12, 'char');
+valueTypes.set(13, 'bool');
 
 module.exports = {
     throwError: function (token, type, idType, exprType) {
@@ -43,10 +44,12 @@ module.exports = {
                 case 1:
                     expected = 'int o float';
                     break;
-                case 10:
+                case 2:
                     expected = 'string o char';
-                case 11:
-                    expected = 'char';
+                    break;
+                case 3:
+                    expected = 'bool';
+                    break;
                 default:
                     expected = 'otro';
                     break;
@@ -70,7 +73,7 @@ typesString = [
     'el codigo tiene que empezar con begin',                //0
     'se esperaba un identificador',                         //1
     'el tipo del valor no concuerda',                       //2
-    'se esperaba el tamaño del arreglo (entero)',           //3
+    'se esperaba otro parametro',                           //3
     'se esperaba (',                                        //4
     'se esperaba )',                                        //5
     'se esperaba {',                                        //6

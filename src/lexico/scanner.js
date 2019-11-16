@@ -159,6 +159,12 @@ function getToken(ln) {
 				ch = linea[++i];
 
 			}
+		} else if (ch === '-') {
+			ch = linea[++i];
+			if (ch === '>') {
+				token = tokenGen.other('->', ln);
+				ch = linea[++i];
+			} else token = tokenGen.specialSymbol('-', ln);
 		}
 		else {
 			token = tokenGen.specialSymbol(ch, ln);

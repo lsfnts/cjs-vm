@@ -1,10 +1,4 @@
 begin
-bool b = true;
-if(b) {
-    fun hola() => string {
-    return "dentro del if";
-}
-
-}
-cjprint hola();
+string n = "hola mundo en archivo";
+write('./1.log',n);
 end

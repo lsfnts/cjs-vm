@@ -23,75 +23,109 @@ module.exports = {
 		}
 		switch (chunk.code[offset]) {
 			case OP.CONSTANT:
-				return module.exports.constantInstruction("OP.CONSTANT", chunk, offset);
-			case OP.NULL:
-				return module.exports.simpleInstruction("OP.NULL", offset);
+				return module.exports.constantInstruction("CONSTANT", chunk, offset);
+			case OP.LONG_CONSTANT:
+				return module.exports.constantInstruction("LONG_CONSTANT", chunk, offset, true);
 			case OP.TRUE:
-				return module.exports.simpleInstruction("OP.TRUE", offset);
+				return module.exports.simpleInstruction("TRUE", offset);
 			case OP.FALSE:
-				return module.exports.simpleInstruction("OP.FALSE", offset);
+				return module.exports.simpleInstruction("FALSE", offset);
+			case OP.ZERO:
+				return module.exports.simpleInstruction("ZERO", offset);
+			case OP.EMPTY_STRING:
+				return module.exports.simpleInstruction("EMPTY_STRING", offset);
 			case OP.ADD:
-				return module.exports.simpleInstruction("OP.ADD", offset);
+				return module.exports.simpleInstruction("ADD", offset);
 			case OP.SUBTRACT:
-				return module.exports.simpleInstruction("OP.SUBTRACT", offset);
+				return module.exports.simpleInstruction("SUBTRACT", offset);
 			case OP.MULTIPLY:
-				return module.exports.simpleInstruction("OP.MULTIPLY", offset);
+				return module.exports.simpleInstruction("MULTIPLY", offset);
 			case OP.DIVIDE:
-				return module.exports.simpleInstruction("OP.DIVIDE", offset);
+				return module.exports.simpleInstruction("DIVIDE", offset);
 			case OP.EXPONEN:
-				return module.exports.simpleInstruction("OP.EXPONEN", offset);
+				return module.exports.simpleInstruction("EXPONEN", offset);
 			case OP.NOT:
-				return module.exports.simpleInstruction("OP.NOT", offset);
+				return module.exports.simpleInstruction("NOT", offset);
 			case OP.EQUAL:
-				return module.exports.simpleInstruction("OP.EQUAL", offset);
+				return module.exports.simpleInstruction("EQUAL", offset);
 			case OP.UNEQUAL:
-				return module.exports.simpleInstruction("OP.UNEQUAL", offset);
+				return module.exports.simpleInstruction("UNEQUAL", offset);
 			case OP.LESS:
-				return module.exports.simpleInstruction("OP.LESS", offset);
+				return module.exports.simpleInstruction("LESS", offset);
 			case OP.LESS_EQ:
-				return module.exports.simpleInstruction("OP.LESS_EQ", offset);
+				return module.exports.simpleInstruction("LESS_EQ", offset);
 			case OP.GREATER:
-				return module.exports.simpleInstruction("OP.GREATER", offset);
+				return module.exports.simpleInstruction("GREATER", offset);
 			case OP.GREATER_EQ:
-				return module.exports.simpleInstruction("OP.GREATER_EQ", offset);
+				return module.exports.simpleInstruction("GREATER_EQ", offset);
 			case OP.PRINT:
-				return module.exports.simpleInstruction("OP.PRINT", offset);
+				return module.exports.simpleInstruction("PRINT", offset);
 			case OP.READ:
-				return module.exports.simpleInstruction("OP.READ", offset);
+				return module.exports.simpleInstruction("READ", offset);
 			case OP.POP:
-				return module.exports.simpleInstruction("OP.POP", offset);
+				return module.exports.simpleInstruction("POP", offset);
 			case OP.POP_N:
-				return module.exports.constantInstruction("OP.POP_N", chunk, offset);
+				return module.exports.constantInstruction("POP_N", chunk, offset);
 			case OP.SET_VAR:
-				return module.exports.byteInstruction("OP.SET_VAR", chunk, offset);
+				return module.exports.byteInstruction("SET_VAR", chunk, offset);
 			case OP.LONG_SET_VAR:
-				return module.exports.byte2Instruction("OP.LONG_SET_VAR", chunk, offset);
+				return module.exports.byte2Instruction("LONG_SET_VAR", chunk, offset);
 			case OP.SET_VAR_FUN:
-				return module.exports.byteInstruction("OP.SET_VAR_FUN", chunk, offset);
+				return module.exports.byteInstruction("SET_VAR_FUN", chunk, offset);
 			case OP.LONG_SET_VAR_FUN:
-				return module.exports.byte2Instruction("OP.LONG_SET_VAR_FUN", chunk, offset);
+				return module.exports.byte2Instruction("LONG_SET_VAR_FUN", chunk, offset);
+
+			case OP.SET_ARRAY:
+				return module.exports.byteInstruction("SET_ARRAY", chunk, offset);
+			case OP.LONG_SET_ARRAY:
+				return module.exports.byte2Instruction("LONG_SET_ARRAY", chunk, offset);
+			case OP.SET_ARRAY_FUN:
+				return module.exports.byteInstruction("SET_ARRAY_FUN", chunk, offset);
+			case OP.LONG_SET_ARRAY_FUN:
+				return module.exports.byte2Instruction("LONG_SET_ARRAY_FUN", chunk, offset);
+
+			case OP.SET_CONTENT:
+				return module.exports.byteInstruction("SET_CONTENT", chunk, offset);
+			case OP.LONG_SET_CONTENT:
+				return module.exports.byte2Instruction("LONG_SET_CONTENT", chunk, offset);
+			case OP.SET_CONTENT_FUN:
+				return module.exports.byteInstruction("SET_CONTENT_FUN", chunk, offset);
+			case OP.LONG_SET_CONTENT_FUN:
+				return module.exports.byte2Instruction("LONG_SET_CONTENT_FUN", chunk, offset);
 			case OP.GET_VAR:
-				return module.exports.byteInstruction("OP.GET_VAR", chunk, offset);
+				return module.exports.byteInstruction("GET_VAR", chunk, offset);
 			case OP.LONG_GET_VAR:
-				return module.exports.byte2Instruction("OP.LONG_GET_VAR", chunk, offset);
+				return module.exports.byte2Instruction("LONG_GET_VAR", chunk, offset);
 			case OP.GET_VAR_FUN:
-				return module.exports.byteInstruction("OP.GET_VAR_FUN", chunk, offset);
+				return module.exports.byteInstruction("GET_VAR_FUN", chunk, offset);
 			case OP.LONG_GET_VAR_FUN:
-				return module.exports.byte2Instruction("OP.LONG_GET_VAR_FUN", chunk, offset);
+				return module.exports.byte2Instruction("LONG_GET_VAR_FUN", chunk, offset);
+
+			case OP.GET_CONTENT:
+				return module.exports.byteInstruction("GET_CONTENT", chunk, offset);
+			case OP.LONG_GET_CONTENT:
+				return module.exports.byte2Instruction("LONG_GET_CONTENT", chunk, offset);
+			case OP.GET_CONTENT_FUN:
+				return module.exports.byteInstruction("GET_CONTENT_FUN", chunk, offset);
+			case OP.LONG_GET_CONTENT_FUN:
+				return module.exports.byte2Instruction("LONG_GET_CONTENT_FUN", chunk, offset);
+
 			case OP.JUMP_IF_FALSE:
-				return module.exports.jumpInstruction("OP.JUMP_IF_F", chunk, offset, 1);
+				return module.exports.jumpInstruction("JUMP_IF_F", chunk, offset, 1);
 			case OP.JUMP:
-				return module.exports.jumpInstruction("OP.JUMP", chunk, offset, 1);
+				return module.exports.jumpInstruction("JUMP", chunk, offset, 1);
 			case OP.LOOP:
-				return module.exports.jumpInstruction("OP.LOOP", chunk, offset, -1);
+				return module.exports.jumpInstruction("LOOP", chunk, offset, -1);
 			case OP.CALL:
-				return module.exports.byteInstruction("OP.CALL", chunk, offset);
+				return module.exports.byteInstruction("CALL", chunk, offset);
 			case OP.SET_RETURN:
-				return module.exports.simpleInstruction("OP.SET_RETURN", offset);
+				return module.exports.simpleInstruction("SET_RETURN", offset);
 			case OP.RETURN_VALUE:
-				return module.exports.simpleInstruction("OP.RETURN_VALUE", offset);
+				return module.exports.simpleInstruction("RETURN_VALUE", offset);
 			case OP.RETURN:
-				return module.exports.simpleInstruction("OP.RETURN", offset);
+				return module.exports.simpleInstruction("RETURN", offset);
+			case OP.PREDEF:
+				return module.exports.byteInstruction("PREDEF", chunk, offset);
 			default:
 				console.log(`${format(offset)} ${chunk.code[offset]}`);
 				return offset + 1;
@@ -103,9 +137,10 @@ module.exports = {
 		return offset + 1;
 	},
 
-	constantInstruction(name, chunk, offset) {
-		let constant = chunk.code[offset + 1];
-		console.log(`${format(offset)} ${formatInst(name)} ${chunk.constants[constant]}`);
+	constantInstruction(name, chunk, offset, long) {
+
+		let index = long ? (chunk.code[offset + 1] << 8) | chunk.code[offset + 2] : chunk.code[offset + 1];
+		console.log(`${format(offset)} ${formatInst(name)} ${chunk.constants[index]}`);
 		return offset + 2;
 	},
 
