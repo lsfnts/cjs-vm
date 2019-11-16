@@ -29,19 +29,18 @@ program
 	});
 
 program
-	.command('parse <path>')
-	.alias('ex')
+	.command('parse')
 	.description('execute the given remote cmd')
-	.option("-e, --exec_mode <mode>", "Which exec mode to use")
+	.option("-u, --ui", "para usar desde ide, lee el programa de stdio")
+	.option("-f, --file <path>", "para leer el archivo <path>")
 	.action(function (path, options) {
 		console.log('parseando...')
 		let vm = new VM();
 
 		let bytecode = parser.parse(lex.fromFile(path));
 		db.dissasemble(bytecode, 'prueba');
+		bytecode.save();
 		vm.interpret(bytecode);
-		//jetpack.write('./1.log','aqui');
-
 	}).on('--help', function () {
 		console.log('');
 		console.log('Examples:');
@@ -49,25 +48,25 @@ program
 
 
 program
-	.command('test')
-	.alias('ex')
+	.command('run <path>')
 	.description('execute the given remote cmd')
-	.option("-e, --exec_mode <mode>", "Which exec mode to use")
+	.option("-d, --debug", "Which exec mode to use")
+	.option("-u, --ui", "para usar desde ide, lee el programa de stdio")
+	.option("-f, --file <path>", "para leer el archivo <path>")
 	.action(function (path, options) {
 		console.log('probando...');
 		let vm = new VM();
 
-		let chunk = new Bytecode();
-
-		db.dissasemble(chunk, 'prueba');
-
-		//console.log('corriendo...');
-		//vm.interpret(chunk);
+		bytecode.load('codigo.cj');
+		db.dissasemble(bytecode, 'loaded');
+		vm.interpret(bytecode);
 	}).on('--help', function () {
 	});
 
 
 
-
+function ejecutar(tokenlist){
+	
+}
 
 program.parse(process.argv);

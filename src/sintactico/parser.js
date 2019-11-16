@@ -105,7 +105,7 @@ function instruccion() {
 		endScope();
 	} else {
 		simple_instr();
-		sincronizar2([TOK.SEMI]);
+		if (token.type !== TOK.SEMI) throwError(error.NOT_SEMI);
 	}
 	sincronizarInicio();
 }
@@ -116,20 +116,25 @@ function simple_instr() {
 		let v = isPreDef();
 		let predef = true;
 		if (!v) {
+			
 			v = resolveVar(token.value);
+			console.log(v);
+			
 			predef = false;
 		}
 		if (v < 0) {
 			throwError(error.UNDEFINED);
 		}
-		nextToken();
-		if (token.type === TOK.ASSIGN) {
+		if (peek(1).type === TOK.ASSIGN) {
+			nextToken();
 			asignacion(v);
-			asignVar(tokCache.value);
-		} else if (token.type === TOK.LPAR) {
-			callFun(v, predef);
-		}
-		else if (token.type === TOK.LBRACKET) {
+			if (symbols.vars[v].isArray) asignArray(v);
+			else asignVar(tokCache.value);
+		} else if (peek(1).type === TOK.LPAR) {
+			namedVariable(tokCache.value, 0);
+			if (predefType) emitByte(OP.POP);
+		} else if (peek(1).type === TOK.LBRACKET) {
+			nextToken();
 			nextToken();
 			expresion(9);
 			if (token.type !== TOK.RBRACKET) {
@@ -171,9 +176,6 @@ function simple_instr() {
 			emitReturn(OP.RETURN);
 		}
 	}
-	if (token.type !== TOK.SEMI) throwError(error.NOT_SEMI);
-	console.log('punto y coma: ' + token.value);
-
 }
 
 function declaracion(single) {
@@ -251,8 +253,16 @@ function expresion(type) {
 		}
 	}
 	switch (type) {
-		case expr.INTEGER: case expr.FLOAT: case expr.CHAR:
+		case expr.INTEGER:
 			expr_num(type);
+			//to int
+			break;
+		case expr.FLOAT:
+			expr_num(type);
+			break;
+		case expr.CHAR:
+			expr_string(type);
+			//to char
 			break;
 		case expr.STRING:
 			expr_string(type);
@@ -602,12 +612,9 @@ function dowhile_instr() {
 function read_instr() {
 	nextToken();
 	if (token.type === TOK.IDEN) {
-		console.log('aqui id');
 		let name = token.value;
 		nextToken();
 		if (token.type === TOK.LBRACKET) {
-			console.log('aqui');
-
 			nextToken()
 			expresion(9);
 			if (token.type !== TOK.RBRACKET) { throwError(error.NOT_RBRACKET); return }
@@ -653,14 +660,54 @@ function sincronizar2(set) {
 }
 
 function isPreDef() {
-	let preDefs = ['', 'write', 'append'];
-	for (let i = 1; i <= 2; ++i) {
+	let preDefs = ['',/*1*/ 'write', 'append', 'read', /*4*/'sqrt', 'abs', 'fact', /*7*/ 'ln', 'sen',
+		'cos', 'tan', 'asen', 'acos', 'atan', 'floor', 'ceiling', 'round', /*17*/ 'length', 'split',
+		'substring',/*20*/'size', /*21*/'tostring'];
+
+	let size = preDefs.length;
+	for (let i = 1; i < size; ++i) {
 		if (token.value === preDefs[i]) {
 			return i;
 		}
 	}
 }
 
+function predefType(slot) {
+	let preDefs = ['',/*1*/ 'write', 'append', 'read', /*4*/'sqrt', 'abs', 'fact', /*7*/ 'ln', 'sen',
+		'cos', 'tan', 'asen', 'acos', 'atan', 'floor', 'ceiling', 'round', /*17*/ 'length', 'split',
+		'substring',/*20*/'size', /*21*/'tostring'];
+	switch (slot) {
+		case 5: case 6: case 14: case 15: case 16: case 17: case 20:
+			return 9;
+		case 4: case 7: case 8: case 9: case 10: case 11: case 12: case 13:
+			return 10;
+		case 3: case 18: case 19: case 21:
+			return 11;
+		default:
+			return 0;
+	}
+}
+function predefParams(slot) {
+	console.log("funcion predefinida: " + slot);
+	if (slot <= 2) {
+		return [11, 11];
+	} else if (slot === 3) {
+		return [11, 9];
+	} else if (slot <= 6) {
+		return [9];
+	} else if (slot <= 16) {
+		return [10];
+	}
+	else if (slot === 17) {
+		return [11];
+	} else if (slot === 18) {
+		return [11, 12];
+	} else if (slot === 19) {
+		return [11, 9, 9];
+	} else if (slot <= 21) {
+		return [0];
+	}
+}
 function throwError(id, idType, exprType) {
 	bytecode.setHasError();
 	err.throwError(token, id, idType, exprType);
@@ -676,29 +723,47 @@ function makeConstant(value) {
 }
 
 function namedVariable(name, type) {
-	nextToken();
-	let slot = resolveVar(name);
-	console.log("var: " + name);
+	let slot = isPreDef();
+	let predef = true;
+	let vari;
+	if (!slot) {
+		slot = resolveVar(name);
+		predef = false;
+		vari = symbols.vars[slot];
+	} else {
+		console.log('slot: ' + slot + 'params:' + predefParams(slot));
+
+		vari = { name: token.value, depth: -1, type: predefType(slot), isFun: true, params: predefParams(slot), predef: true }
+		if (slot === 17) vari.isArray = true;
+	}
+	console.log(slot);
+	
+	if (slot < 0) {
+		console.log("named Var");
+		
+		throwError(error.UNDEFINED);
+	}
 
 	if (slot >= 0) {
-		if (type) {
+		if (type && !predef) {
 			switch (type) {
 				case 1:
-					if (!lex.isNum(symbols.vars[slot])) throwError(error.BAD_VAR_TYPE, symbols.vars[slot].type, type);
+					if (!lex.isNum(vari)) throwError(error.BAD_VAR_TYPE, vari.type, type);
 					break;
 				case 2:
-					if (!lex.isAlpha(symbols.vars[slot])) throwError(error.BAD_VAR_TYPE, symbols.vars[slot].type, type);
+					if (!lex.isAlpha(vari)) throwError(error.BAD_VAR_TYPE, vari.type, type);
 					break;
 				case 3:
-					if (!lex.isBool(symbols.vars[slot])) return false;//throwError(error.BAD_VAR_TYPE, s.type, type);
+					if (!lex.isBool(vari)) return false;//throwError(error.BAD_VAR_TYPE, s.type, type);
 				default:
 					break;
 			}
 		}
-		if (token.type === TOK.LPAR) callFun(slot);
+		nextToken();
+		if (token.type === TOK.LPAR) {
+			callFun(vari, slot);
+		}
 		else if (token.type === TOK.LBRACKET) {
-			console.log('aqui');
-
 			if (!symbols.vars[slot].isArray) {
 				throwError(error.NOT_ARRAY); return
 			}
@@ -725,6 +790,8 @@ function namedVariable(name, type) {
 			}
 		}
 	} else {
+		console.log("namedVar else");
+		
 		throwError(error.UNDEFINED);
 	}
 	console.log('terminado, token:' + token.value);
@@ -765,35 +832,23 @@ function emptyVar(type) {
 	}
 }
 
-function callFun(slot, preDef) {
-	let funcion
-	if (preDef) {
-		console.log("funcion predefinida: " + slot);
-		if (slot <= 2) {
-			funcion = {isFun: true, params: [11, 11] };
-		}
-	} else {
-		funcion = symbols.vars[slot];
-		if (!funcion.isFun) {
-			throwError(error.NOT_FUN);//NOT_FUN
-			return;
-		}
+function callFun(funcion, slot) {
+	if (!funcion.isFun) {
+		throwError(error.NOT_FUN);//NOT_FUN
+		return;
 	}
 	nextToken();
 
 	let n = funcion.params.length;
 	for (let i = 0; i < n; ++i) {
-		console.log('aqui: ' + token.value);
 		if (token.type === TOK.RPAR) throwError(error.NOT_PARAM);
-		console.log(funcion.params[i]);
-
 		expresion(funcion.params[i]);
 		//if (i !== n && token.type !== TOK.COMMA) throwError(error.NOT_COMMA);
-		if (token.type === TOK.COMMA)nextToken();
+		if (token.type === TOK.COMMA) nextToken();
 	}
 	if (token.type !== TOK.RPAR) throwError(error.NOT_RPAR);
 	sincronizar2([TOK.RPAR]);
-	if (preDef) {
+	if (funcion.predef) {
 		emitConstant(slot);
 		emitBytes(OP.PREDEF, funcion.params.length)
 	} else {
@@ -807,13 +862,25 @@ function callFun(slot, preDef) {
 
 function defineVar(slot) {
 	symbols.vars[slot].depth = symbols.scopeDepth;
-	setVar(slot);
+	if (symbols.vars[slot].isArray) {
+		asignArray(slot);
+	} else setVar(slot);
 }
 
 
 function asignVar(name) {
 	let slot = resolveVar(name);
 	setVar(slot);
+}
+
+function asignArray(slot) {
+	if (isFun && symbols.vars[slot].scope >= symbols.scopeDepth) {
+		slot = slot - symbols.funVarSlot;
+		if (slot < 256) emitBytes(OP.SET_ARRAY_FUN, slot);
+		else emit3Bytes(OP.LONG_SET_ARRAY_FUN, slot);
+	}
+	if (slot < 256) emitBytes(OP.SET_ARRAY, slot);
+	else emit3Bytes(OP.LONG_SET_ARRAY, slot);
 }
 
 function setVar(slot) {

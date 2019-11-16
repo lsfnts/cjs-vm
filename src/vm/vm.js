@@ -3,6 +3,7 @@ const db = require('./debug');
 const Bytecode = require('./bytecode');
 var readline = require('readline-sync');
 const jetpack = require('fs-jetpack');
+const lineByLine = require('n-readlines');
 
 module.exports = class VM {
 	constructor(bytecode) {
@@ -27,7 +28,7 @@ module.exports = class VM {
 	run() {
 		let op = 1;
 		while (op) {
-			this._debug_trace();
+			//this._debug_trace();
 			op = this._readByte();
 
 			switch (op) {
@@ -201,7 +202,6 @@ module.exports = class VM {
 					this.frames.push(this.stack.length - this._readByte() - 1);
 					this.frames.push(this.ip);
 					this.ip = this.stack.pop();
-					console.log(this.frames);
 					break;
 				case OP.SET_RETURN:
 					this.frames.push(this.stack.pop());
@@ -214,17 +214,106 @@ module.exports = class VM {
 					break;
 				case OP.PREDEF: {
 					let base = (this.stack.length - this._readByte() - 1);
-					console.log(this.frames);
 					switch (this.stack.pop()) {
 						case OP.WRITE:
 							jetpack.write(this.stack[base], this.stack[base + 1]);
+							this.pop(); this.pop();
 							break;
+						case OP.APPEND:
+							jetpack.append(this.stack[base], this.stack[base + 1]);
+							this.pop(); this.pop();
+							break;
+						case OP.READ: {
+							let l = this.stack.pop();
+							let liner = new lineByLine(this.stack.pop());
 
+							let line;
+							let res = '';
+							let lineNumber = 0;
+							while (line = liner.next()) {
+								if (line === l) {
+									res = line.toString();
+									break;
+								}
+								lineNumber++;
+							}
+							liner.close();
+							this.stack.push(res);
+							break;
+						}
+						case OP.SQRT:
+							this.stack.push(Math.sqrt(this.stack.pop()));
+							break;
+						case OP.ABS:
+							this.stack.push(Math.abs(this.stack.pop()));
+							break;
+						case OP.FACT: {
+							let n = this.stack.pop();
+							let total = 1;
+							for (let i = 1; i <= n; i++) {
+								total = total * i;
+							}
+							this.stack.push(total);
+							break;
+						}
+						case OP.SEN:
+							this.stack.push(Math.sin(this.stack.pop()));
+							break;
+						case OP.COS:
+							this.stack.push(Math.cos(this.stack.pop()));
+							break;
+						case OP.TAN:
+							this.stack.push(Math.tan(this.stack.pop()));
+							break;
+						case OP.ASEN:
+							this.stack.push(Math.asin(this.stack.pop()));
+							break;
+						case OP.ACOS:
+							this.stack.push(Math.acos(this.stack.pop()));
+							break;
+						case OP.ATAN:
+							this.stack.push(Math.atan(this.stack.pop()));
+							break;
+						case OP.FLOOR:
+							this.stack.push(Math.floor(this.stack.pop()));
+							break;
+						case OP.CEILING:
+							this.stack.push(Math.ceil(this.stack.pop()));
+							break;
+						case OP.ROUND:
+							this.stack.push(Math.round(this.stack.pop()));
+							break;
+						case OP.LENGTH:
+							this.stack.push(this.stack.pop().length);
+							break;
+						case OP.SPLIT: {
+							let res = this.stack[base].split(this.stack[base + 1]);
+							this.stack.pop(); this.stack.pop();
+							this.stack.push(res)
+							break;
+						}
+						case OP.SUBSTRING: {
+							let res = this.stack[base].substring(this.stack[base + 1], this.stack[base + 2]);
+							this.stack.pop(); this.stack.pop(); this.stack.pop();
+							this.stack.push(res);
+							break;
+						}
+						case OP.SIZE:
+							this.stack.push(this.stack.pop().length);
+							break;
+						case OP.TOSTRING:
+							this.stack.push(this.stack.pop().toString());
 						default:
 							break;
 					}
 					break;
 				}
+				case OP.TO_INT:
+					this.stack.push(Math.floor(this.stack.pop()));
+					break;
+				case OP.TO_CHAR:
+					this.stack.push((this.stack.pop()[0]));
+					break;
 				default:
 					//console.log(this.bytecode.constants);
 

@@ -63,9 +63,30 @@ module.exports = {
 	RETURN_VALUE: 52,
 	RETURN: 53,
 	PREDEF: 54,
+	TO_INT: 55,
+	TO_CHAR: 56,
 	//CHAR_CODE: 23
 	//LONG_CONSTANT?
 
-	WRITE:1,
-	APPEND:2
+	WRITE: 1,
+	APPEND: 2,
+	READ: 3,
+	SQRT: 4,
+	ABS: 5,
+	FACT: 6,
+	LN: 7,
+	SEN: 8,
+	COS: 9,
+	TAN: 10,
+	ASEN: 11,
+	ACOS: 12,
+	ATAN: 13,
+	FLOOR: 14,
+	CEILING: 15,
+	ROUND: 16,
+	LENGTH: 17,
+	SPLIT: 18,
+	SUBSTRING: 19,
+	SIZE: 20,
+	TOSTRING: 21
 }

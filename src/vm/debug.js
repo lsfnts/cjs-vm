@@ -126,6 +126,10 @@ module.exports = {
 				return module.exports.simpleInstruction("RETURN", offset);
 			case OP.PREDEF:
 				return module.exports.byteInstruction("PREDEF", chunk, offset);
+			case OP.TO_INT:
+				return module.exports.simpleInstruction("TO_INT", offset);
+			case OP.TO_CHAR:
+				return module.exports.simpleInstruction("TO_CHAR", offset);
 			default:
 				console.log(`${format(offset)} ${chunk.code[offset]}`);
 				return offset + 1;
@@ -160,7 +164,32 @@ module.exports = {
 		let jump = (chunk.code[offset + 1] << 8) | chunk.code[offset + 2];
 		console.log(`${format(offset)} ${formatInst(name)} -> ${format(offset + 3 + sign * jump)}`);
 		return offset + 3;
-	}
+	},
+
+	predefInstruction(name, chunk, offset) {
+		let slot = chunk.code[offset + 1];
+		let fun;
+		switch (slot) {
+			case OP.WRITE: fun = 'write'; break;
+			case OP.APPEND: fun = 'append'; break;
+			case OP.READ: fun = 'read'; break;
+			case OP.SQRT: fun = 'sqrt'; break;
+			case OP.ABS: fun = 'abs'; break;
+			case OP.FACT: fun = 'fact'; break;
+			case OP.SEN: fun = 'sen'; break;
+			case OP.COS: fun = 'cos'; break;
+			case OP.TAN: fun = 'tan'; break;
+			case OP.ASEN: fun = 'asen'; break;
+			case OP.ACOS: fun = 'acos'; break;
+			case OP.ATAN: fun = 'atan'; break;
+			case OP.FLOOR: fun = 'floor'; break;
+			case OP.CEILING: fun = 'ceiling'; break;
+			case OP.ROUND: fun = 'round'; break;
+			default: fun = 'otro'; break;
+		}
+		console.log(`${format(offset)} ${formatInst(name)} ${fun}`);
+		return offset + 2;
+	},
 
 }
 

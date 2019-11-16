@@ -1,4 +1,3 @@
-
 const Type = {
 	NULL: 0,
 	BEGIN: 1,
@@ -138,7 +137,7 @@ module.exports.utils = {
 		return (tok.type === Type.CHAR || tok.type === Type.STRING);
 	},
 	isNum: function (tok) {
-		return (tok.type === Type.INTEGER || tok.type === Type.FLOAT || tok.type === Type.CHAR);
+		return (tok.type === Type.INTEGER || tok.type === Type.FLOAT);
 	},
 	isBool: function (tok) {
 		return (tok.type === Type.BOOL || tok.type === Type.TRUE || tok.type === Type.FALSE);
