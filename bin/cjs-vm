@@ -34,12 +34,15 @@ program
 	.option("-u, --ui", "para usar desde ide, lee el programa de stdio")
 	.option("-f, --file <path>", "para leer el archivo <path>")
 	.action(function (path, options) {
-		console.log('parseando...')
 		let vm = new VM();
 
 		let bytecode = parser.parse(lex.fromFile(path));
-		db.dissasemble(bytecode, 'prueba');
-		bytecode.save();
+		//db.dissasemble(bytecode, 'prueba');
+		if (bytecode.hasError) {
+			console.log(bytecode.errors);
+			
+		}
+		//bytecode.save();
 		vm.interpret(bytecode);
 	}).on('--help', function () {
 		console.log('');
@@ -48,18 +51,32 @@ program
 
 
 program
-	.command('run <path>')
+	.command('run')
 	.description('execute the given remote cmd')
 	.option("-d, --debug", "Which exec mode to use")
 	.option("-u, --ui", "para usar desde ide, lee el programa de stdio")
 	.option("-f, --file <path>", "para leer el archivo <path>")
-	.action(function (path, options) {
-		console.log('probando...');
+	.action(function (options) {
 		let vm = new VM();
+		if (options.ui) {
+			lex.fromStream(process.stdin).then(tokenlist => {
+				let bytecode = parser.parse(tokenlist)
+				if (bytecode.hasError) {
+					console.log('1');
+					console.log(JSON.stringify(bytecode.errors));
+					
+					return;
+				} else console.log('0');
+				
+				vm.interpret(bytecode);
+			});
+
+		}else{
+		console.log('probando...');
 
 		bytecode.load('codigo.cj');
 		db.dissasemble(bytecode, 'loaded');
-		vm.interpret(bytecode);
+		vm.interpret(bytecode);}
 	}).on('--help', function () {
 	});
 

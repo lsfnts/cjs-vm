@@ -27,6 +27,8 @@ const types = {
     NOT_EMPTY_RETURN: 25,
     VOID_FUNCTION: 26,
     NOT_ARRAY: 27,
+    NOT_ASSIGN: 28,
+    NOT_COMMA: 29
 }
 
 const valueTypes = new Map;
@@ -38,6 +40,7 @@ valueTypes.set(13, 'bool');
 
 module.exports = {
     throwError: function (token, type, idType, exprType) {
+        let mes;
         if (type === types.BAD_VAR_TYPE) {
             let expected;
             switch (exprType) {
@@ -54,22 +57,25 @@ module.exports = {
                     expected = 'otro';
                     break;
             }
-            console.log(`${typesString[type]} tipo variable: ${valueTypes.get(idType)}, tipo esperado: ${expected}. en la linea ${token.line}`);
+            mes = `${typesString[type]} tipo variable: ${valueTypes.get(idType)}, tipo esperado: ${expected}. en la linea ${token.line}`;
         } else if (type === types.UNDEFINED) {
-            console.log(`identificador ${token.value} no definido en la linea ${token.line}`);
+            mes = `identificador ${token.value} no definido en la linea ${token.line}`;
         } else if (type === types.VAR_EXISTS) {
-            console.log(`identificador ${token.value} ya en uso en el scope actual en la linea ${token.line}`);
+            mes = `identificador ${token.value} ya en uso en el scope actual en la linea ${token.line}`;
         } else if (type === types.NOT_FUN) {
-            console.log(`${token.value} no es una funcion en la linea ${token.line}`);
+            mes = `${token.value} no es una funcion en la linea ${token.line}`;
         } else {
-            console.log(`${typesString[type]} en la linea ${token.line}`)
+            mes = `${typesString[type]} en la linea ${token.line}`
         }
-
+        //console.log(mes);
+        
+        return {message: mes, line_number: token.line};
     },
     errorType: types
 }
 
-typesString = [
+
+let typesString = [
     'el codigo tiene que empezar con begin',                //0
     'se esperaba un identificador',                         //1
     'el tipo del valor no concuerda',                       //2
@@ -97,5 +103,8 @@ typesString = [
     'return afuera de una funcion',                         //24
     'esta funcion no debe retornar ningun valor',           //25
     'esta funcion no retorna ningun valor',                 //26
+    'esa variable no es un arreglo',                        //27
+    'no se esta asigando',                                  //28
+    'se esperaba , '                                        //29               
 ]
 

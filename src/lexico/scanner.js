@@ -18,7 +18,7 @@ module.exports = {
 		}
 		return tokenList;
 	},
-	fromStream: function (stream, callback) {
+	fromStream: (async function (stream) {
 		tokenList = [];
 		lineN = 0;
 		let readline = require('readline');
@@ -27,14 +27,20 @@ module.exports = {
 			input: stream,
 			crlfDelay: Infinity
 		});
-
-		rl.on('line', (line) => {
+		let i = 0
+		for await (const line of rl) {
 			tokenList = tokenList.concat(scanLine(line.toString(), lineN++));
-		}).on('close', () => {
-			callback(tokenList);
-		});
+		}
+		return tokenList;
 
-	}
+		/*
+	  rl.on('line', (line) => {
+		  tokenList = tokenList.concat(scanLine(line.toString(), lineN++));
+	  }).on('close', () => {
+		  callback(tokenList);
+	  });
+*/
+	})
 }
 
 var ch = '';

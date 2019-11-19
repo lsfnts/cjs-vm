@@ -11,7 +11,7 @@ module.exports = {
 		console.log(`===================`);
 		console.log('constants:');
 		console.log(chunk.constants.toString());
-		console.log(`===================`);
+		console.log(`===================\n`);
 	},
 
 	disassembleInstruction(chunk, offset) {

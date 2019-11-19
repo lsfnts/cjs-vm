@@ -6,7 +6,7 @@ instr ::= simple_instr | complex_instr | bloque
 
 bloque ::= '{' lista_instr '}'
 
-simple_instr ::= ( |decla | asign | print_instr | read_instr) ';'
+simple_instr ::= ( |decla | asign | print_instr | read_instr | expr) ';'
 
 print_instr ::= 'cjprint' expr_alfa
 
@@ -14,21 +14,23 @@ read_instr ::= 'cjread' ID
 
 complex_instr ::= if_instr | itera_instr | fun_def
 
-decla ::= TIPO asign (',' asign)*
+decla ::= TIPO identificador '=' expr (',' identificador '=' expr)*
 asign ::= ID '=' expr
 
 expr ::= (expr_num | expr_alfa | expr_bool)
 expr_num ::= factor (('-'|'+') factor)*
 factor ::= potencia(('*'|'/')potencia)*
 potencia ::= numero(('^')numero)*
-numero ::= dato_num | ID | '('expr_num')'
+numero ::= dato_num | ID | '('expr_num')' | fun_call
+
 expr_alfa ::= (termino_alfa ( '+' termino_alfa)*)
-termino_alfa ::= dato_alfa | ID | '('expr_alfa')'
+
+termino_alfa ::= dato_alfa | ID | '('expr_alfa')' | fun_call
 expr_bool ::= parte_bool (('&&'|'||') parte_bool)*
 
 parte_bool ::= '!'? termino_bool (COMP termino_bool)*
 
-termino_bool ::= BOOL|ID|expr
+termino_bool ::= BOOL|ID|expr|fun_call
 
 
 if_instr ::= 'if' expr_bool bloque elif_instr* else_instr?
@@ -37,5 +39,10 @@ else_instr ::= 'else' bloque
 itera_instr ::= for_instr | while_instr | dowhile_instr
 for_instr ::= 'for' '(' (decla|asign)? ';' expr_bool? ';' expr? ')' bloque
 
-fun_def ::= 'fun' '(' (param(','param)*)? ')' '=>' bloque
+fun_def ::= 'fun' identificador '(' (param(','param)*)? ')' '=>' bloque
+
+fun_call ::= identificador '(' ID (',' ID )*')'
+
 param ::= TIPO ID
+
+ID ::= identificador ('['expr_num']')?

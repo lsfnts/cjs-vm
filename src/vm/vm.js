@@ -178,8 +178,7 @@ module.exports = class VM {
 				}
 				case OP.GET_CONTENT_FUN: {
 					let i = this.stack.pop();
-					console.log('es aqui:' + this.frames[this.frames.length - 2]);
-
+					//console.log('es aqui:' + this.frames[this.frames.length - 2]);
 					this.stack.push(this.stack[this._readByte() + this.frames[this.frames.length - 2]][i]);
 					break;
 				}

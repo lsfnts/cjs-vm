@@ -16,7 +16,7 @@ module.exports = class Bytecode {
 		//this.lines[1] = 1;
 
 		this.constants = [];
-
+		this.errors = [];
 	}
 
 	write(byte, line) {
@@ -69,7 +69,6 @@ module.exports = class Bytecode {
 		s[0] = JSON.stringify(this.constants).length;
 		s[1] = this.count;
 		s[2] = this.lineCount;
-		console.log(s);
 
 		let buffer = Buffer.from(this.code.slice(0, this.count));
 		jetpack.write('./codigo.cj', Buffer.from(s))
