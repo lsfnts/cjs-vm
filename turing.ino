@@ -1,3 +1,5 @@
+#include <LiquidCrystal_I2C.h>
+
 #include <Button.h>
 
 
@@ -33,6 +35,8 @@ void setup() {
   button1.begin();
   button2.begin();
   button3.begin();
+  button4.begin();
+  button5.begin();
 
   //cinta[l++] = ' ';
 
@@ -46,8 +50,8 @@ void loop() {
   lcd.clear();
 
   if (input) {
+    lcd.blink();
     readInput();
-    lcd.noBlink();
   }
 
   printCinta();
@@ -56,7 +60,7 @@ void loop() {
     turing1();
   }
 
-  delay(80);
+  delay(20);
 }
 
 void printCinta() {
@@ -68,29 +72,33 @@ void printCinta() {
 
 void readInput() {
   if (button1.pressed()) {
-    cinta[l] = '1';
-    l++;
+    cinta[l++] = '1';
   }
   if (button2.pressed()) {
-    cinta[l] = '0';
-    l++;
+    cinta[l++] = '0';
   }
+
   if (button3.pressed()) {
+    cinta[l++] = ' ';
+  }
+  if (button4.pressed()) {
+    cinta[l--] = ' ';
+  }
+  if (button5.pressed()) {
     input = false;
     program1 = true;
-
   }
 }
 
 void turing1() {
-  lcd.setCursor(cp, 0);
   lcd.blink();
   char c = cinta[cp];
   lcd.setCursor(0, 1);
-    lcd.print("estado ");
-    lcd.print(0);
+  lcd.print("estado ");
+  lcd.print(0);
+  lcd.setCursor(cp, 0);
+  delay(1000);
   while (c == '0' || c == '1') {
-    lcd.setCursor(cp, 0);
     switch (state) {
       case 0:
         switch (c) {
@@ -140,7 +148,8 @@ void turing1() {
     lcd.setCursor(0, 1);
     lcd.print("estado ");
     lcd.print(state);
-    delay(800);
+    lcd.setCursor(cp, 0);
+    delay(1000);
     c = cinta[cp];
   }
   lcd.clear();
@@ -150,4 +159,5 @@ void turing1() {
     lcd.print("rechazado");
   }
   delay(2000);
+  program1 = false;
 }
