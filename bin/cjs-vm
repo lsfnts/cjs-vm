@@ -37,13 +37,13 @@ program
 		let vm = new VM();
 
 		let bytecode = parser.parse(lex.fromFile(path));
-		//db.dissasemble(bytecode, 'prueba');
+		db.dissasemble(bytecode, 'prueba');
 		if (bytecode.hasError) {
 			console.log(bytecode.errors);
 			
 		}
 		//bytecode.save();
-		vm.interpret(bytecode);
+		vm.interpret(bytecode,true);
 	}).on('--help', function () {
 		console.log('');
 		console.log('Examples:');
@@ -68,7 +68,7 @@ program
 					return;
 				} else console.log('0');
 				
-				vm.interpret(bytecode);
+				vm.interpret(bytecode, true);
 			});
 
 		}else{

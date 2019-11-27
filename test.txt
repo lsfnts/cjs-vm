@@ -1,12 +1,5 @@
 Begin
-
-String a[2];
-a[0] = "1: hola mundo";
-a[1] = "2: hola mundo";
-int i = 0;
-while (i<size(a)) {
-	cjprint a[i];
-	i = i+1;
-}
-
+string s;
+s="hola";
+cjprint s;
 End

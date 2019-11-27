@@ -27,7 +27,7 @@ const types = {
     NOT_EMPTY_RETURN: 25,
     VOID_FUNCTION: 26,
     NOT_ARRAY: 27,
-    NOT_ASSIGN: 28,
+    NOT_ASIGN: 28,
     NOT_COMMA: 29
 }
 
@@ -104,7 +104,7 @@ let typesString = [
     'esta funcion no debe retornar ningun valor',           //25
     'esta funcion no retorna ningun valor',                 //26
     'esa variable no es un arreglo',                        //27
-    'no se esta asigando',                                  //28
+    'no se esta asignando',                                  //28
     'se esperaba , '                                        //29               
 ]
 

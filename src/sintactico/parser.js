@@ -109,18 +109,17 @@ function simple_instr() {
 	if (token.type === TOK.IDEN) {
 
 		let tokCache = token;
-		let v = isPreDef();
+		let v = isPreDef(token);
 		if (!v) v = resolveVar(token.value);
 		if (v < 0) {
 			throwError(error.UNDEFINED);
 			sincronizar2([TOK.SEMI, TOK.RPAR]);
 			return;
 		}
-		if (peek(1).type === TOK.ASSIGN) {
+		if (peek(1).type === TOK.ASIGN) {
 			nextToken();
 			asignacion(v);
-			if (symbols.vars[v].isArray) asignArray(v);
-			else asignVar(tokCache.value);
+			asignVar(v);
 		} else if (peek(1).type === TOK.LPAR) {
 			namedVariable(tokCache.value, 0);
 			if (predefType) emitByte(OP.POP);
@@ -133,9 +132,9 @@ function simple_instr() {
 				return;
 			}
 			nextToken();
-			if (token.type === TOK.ASSIGN) {
+			if (token.type === TOK.ASIGN) {
 				asignacion(v);
-				asignVar(tokCache.value);
+				asignVar(v);
 			}
 		} else if (peek(1).type === TOK.SEMI) {
 			nextToken();
@@ -179,13 +178,14 @@ function declaracion(single) {
 		nextToken();
 		if (token.type === TOK.IDEN) {
 			let v = declareVar(typeCache);
+			emptyVar(typeCache);
+			emitBytes(OP.DEFINE_VAR, v);
 			idenTok = token;
 
 			nextToken();
 			if (token.type === TOK.LBRACKET) {
 				nextToken();
 				symbols.vars[v].isArray = true;
-				emitByte(OP.ZERO);
 				if (token.type !== TOK.RBRACKET) {
 					expresion(9);
 				}
@@ -198,9 +198,10 @@ function declaracion(single) {
 					throwError(error.NOT_SEMI);
 				}
 			}
-			else if (token.type === TOK.ASSIGN) asignacion(v);
+			else if (token.type === TOK.ASIGN) asignacion(v);
 			else emptyVar(typeCache);
 			defineVar(v);
+
 		} else { throwError(error.NOT_IDEN); return }
 		if (single) break;
 	} while (token.type === TOK.COMMA);
@@ -212,56 +213,50 @@ function asignacion(v) {
 }
 
 function expresion(type) {
-	var expr = { INTEGER: 9, FLOAT: 10, STRING: 11, CHAR: 12, BOOL: 13, };
+	var tok = { INTEGER: 9, FLOAT: 10, STRING: 11, CHAR: 12, BOOL: 13, };
 	if (!type) {
-		let offset = 1;
-		let tokenType = token.type;
-		while (tokenType === TOK.LPAR) {
-			tokenType = peek(offset).type;
-		}
-		if (tokenType === TOK.IDEN) {
-			let v = resolveVar(token.value);
-			if (v < 0) {
-				throwError(error.UNDEFINED);
-				nextToken();
-				return;
-			} else if (symbols.vars[v].isFun && !symbols.vars[v].type) {
-				throwError(error.VOID_FUNCTION);
-				nextToken();
-				return;
-			} else tokenType = symbols.vars[resolveVar(token.value)].type;
-		}
-		switch (tokenType) {
-			case TOK.INTEGER: expr_num(expr.INTEGER);
+		let offset = 0;
+		let tokCache = peek(offset++);
+		while (tokCache) {
+
+			if (tokCache.type === TOK.IDEN) {
+				let v = isPreDef(tokCache);
+				if (v) { type = predefType(v); break }
+				else v = resolveVar(tokCache.value);
+				if (v < 0) {
+					throwError(error.UNDEFINED);
+					nextToken();
+					return;
+				} else if (symbols.vars[v].isFun && !symbols.vars[v].type) {
+					throwError(error.VOID_FUNCTION);
+					nextToken();
+					return;
+				} else { type = symbols.vars[v].type; break }
+			}
+			else if (lex.isValue(tokCache)) {
+				type = tokCache.type;
 				break;
-			case TOK.FLOAT: expr_num(expr.FLOAT);
-				break;
-			case TOK.STRING: expr_string(expr.STRING);
-				break;
-			case TOK.CHAR: expr_string(expr.CHAR);
-				break;
-			case TOK.TRUE: case TOK.FALSE: case TOK.NOT: case TOK.BOOL: expr_bool(expr.BOOL);
-				break;
-			default:
-				break;
+			}
+			else if (tokCache.type == TOK.SEMI || tokCache.type == TOK.RPAR)
+				tokCache = peek(offset++);
 		}
 	}
 	switch (type) {
-		case expr.INTEGER:
+		case tok.INTEGER:
 			expr_num(type);
 			//to int
 			break;
-		case expr.FLOAT:
+		case tok.FLOAT:
 			expr_num(type);
 			break;
-		case expr.CHAR:
-			expr_string(type);
+		case tok.CHAR:
+			expr_alpha(type);
 			//to char
 			break;
-		case expr.STRING:
-			expr_string(type);
+		case tok.STRING:
+			expr_alpha(type);
 			break;
-		case expr.BOOL:
+		case tok.BOOL: case 14: case 15:
 			expr_bool(type);
 			break;
 		default:
@@ -273,10 +268,10 @@ function expresion(type) {
 function expr_num(type) {
 	factor(type);
 	while (token.type === TOK.SUM || token.type === TOK.SUB) {
-		let sign = token.type;
+		let op = token.type;
 		nextToken();
 		factor(type);
-		switch (sign) {
+		switch (op) {
 			case TOK.SUM:
 				emitByte(OP.ADD);
 				break;
@@ -289,11 +284,11 @@ function expr_num(type) {
 
 function factor(type) {
 	potencia(type);
-	while (token.type === TOK.MUL || token.type === TOK.DIV || token.type === TOK.MOD) {
-		let sign = token.type;
+	while (token.type === TOK.MUL || token.type === TOK.DIV) {
+		let op = token.type;
 		nextToken();
 		potencia(type);
-		switch (sign) {
+		switch (op) {
 			case TOK.MUL:
 				emitByte(OP.MULTIPLY);
 				break;
@@ -320,13 +315,18 @@ function potencia(type) {
 }
 
 function numero(type) {
+	let negFlag = false;
+	if (token.type === TOK.SUB) {
+		negFlag = true;
+		nextToken();
+	}
 	if (token.type === TOK.LPAR) {
 		nextToken();
 		expr_num(type);
-		if (token.type === TOK.RPAR) {
+		if (token.type !== TOK.RPAR) {
+			throwError(error.NOT_RPAR);
+		} else nextToken();
 
-			nextToken();
-		}
 	} else if (lex.isNum(token)) {
 		emitConstant(Number(token.value));
 
@@ -340,9 +340,10 @@ function numero(type) {
 		throwError(error.NOT_NUMBER);
 		return;
 	}
+	if (negFlag) emitByte(OP.NEGATE);
 }
 
-function expr_string(type) {
+function expr_alpha(type) {
 	termino_alfa(type);
 	while (token.type === TOK.SUM) {
 		nextToken();
@@ -354,7 +355,10 @@ function expr_string(type) {
 function termino_alfa(type) {
 	if (token.type === TOK.LPAR) {
 		nextToken();
-		expr_alfa(type);
+		expr_alpha(type);
+		if (token.type !== TOK.RPAR) {
+			throwError(error.NOT_RPAR);
+		} else nextToken();
 	} else if (lex.isValue(token)) {
 		emitConstant(token.value);
 		nextToken();
@@ -366,8 +370,17 @@ function termino_alfa(type) {
 function expr_bool() {
 	parte_bool();
 	while (token.type === TOK.OR || token.type === TOK.AND) {
+		let op = token.type;
 		nextToken();
 		parte_bool();
+		switch (op) {
+			case TOK.OR:
+				emitByte(OP.OR);
+				break;
+			case TOK.AND:
+				emitByte(OP.AND);
+				break;
+		}
 	}
 }
 
@@ -399,6 +412,7 @@ function termino_bool() {
 		nextToken();
 		expr_bool();
 		if (token.type !== TOK.RPAR) { throwError(error.NOT_RPAR); return }
+		nextToken();
 	} else if (lex.isBool(token)) {
 		if (token.type === TOK.TRUE) emitByte(OP.TRUE);
 		else emitByte(OP.FALSE);
@@ -434,6 +448,7 @@ function declaracionFuncion() {
 		nextToken();
 		if (token.type === TOK.IDEN) {
 			let v = declareVar(typeCache);
+			emitBytes(OP.DEFINE_PARAM, 0);
 			nextToken();
 			if (token.type === TOK.LBRACKET) {
 				symbols.vars[v].isArray = true;
@@ -623,11 +638,12 @@ function read_instr() {
 			expresion(9);
 			if (token.type !== TOK.RBRACKET) { throwError(error.NOT_RBRACKET); return }
 			nextToken();
-		} else { }
+		}
 		//int:9, float:10, string:11, char:12, bool:13
 		let slot = resolveVar(name);
+		emitConstant(name);
 		emitBytes(OP.READ, symbols.vars[slot].type);
-		asignVar(name);
+		asignVar(slot);
 	}
 }
 
@@ -653,7 +669,6 @@ function sincronizarInicio() {
 }
 
 function sincronizar2(set) {
-
 	while (token) {
 		if (set.includes(token.type)) {
 			return;
@@ -662,7 +677,7 @@ function sincronizar2(set) {
 	}
 }
 
-function isPreDef() {
+function isPreDef(token) {
 	let preDefs = ['',/*1*/ 'write', 'append', 'read', /*4*/'sqrt', 'abs', 'fact', /*7*/ 'ln', 'sen',
 		'cos', 'tan', 'asen', 'acos', 'atan', 'floor', 'ceiling', 'round', /*17*/ 'length', 'split',
 		'substring',/*20*/'size', /*21*/'tostring'];
@@ -670,16 +685,12 @@ function isPreDef() {
 	let size = preDefs.length;
 	for (let i = 1; i < size; ++i) {
 		if (token.value === preDefs[i]) {
-
 			return i;
 		}
 	}
 }
 
 function predefType(slot) {
-	let preDefs = ['',/*1*/ 'write', 'append', 'read', /*4*/'sqrt', 'abs', 'fact', /*7*/ 'ln', 'sen',
-		'cos', 'tan', 'asen', 'acos', 'atan', 'floor', 'ceiling', 'round', /*17*/ 'length', 'split',
-		'substring',/*20*/'size', /*21*/'tostring'];
 	switch (slot) {
 		case 5: case 6: case 14: case 15: case 16: case 17: case 20:
 			return 9;
@@ -700,8 +711,7 @@ function predefParams(slot) {
 		return [9];
 	} else if (slot <= 16) {
 		return [10];
-	}
-	else if (slot === 17) {
+	} else if (slot === 17) {
 		return [11];
 	} else if (slot === 18) {
 		return [11, 12];
@@ -716,32 +726,21 @@ function throwError(id, idType, exprType) {
 	bytecode.errors.push(err.throwError(token, id, idType, exprType));
 }
 
-function emitConstant(value) {
-	let address = makeConstant(value);
-	if (address < 256) emitBytes(OP.CONSTANT, address);
-	else emit3Bytes(OP.LONG_CONSTANT, address);
-}
-function makeConstant(value) {
-	return bytecode.addConstant(value);
-}
-
 function namedVariable(name, type) {
-	let slot = isPreDef();
-	let predef = true;
+	let slot = isPreDef(token);
 	let vari;
-	if (!slot) {
-		slot = resolveVar(name);
-		predef = false;
-		vari = symbols.vars[slot];
-	} else {
+	if (slot) {
 		vari = { name: token.value, depth: -1, type: predefType(slot), isFun: true, params: predefParams(slot), predef: true }
 		if (slot === 17) vari.isArray = true;
+	} else {
+		slot = resolveVar(name);
+		vari = symbols.vars[slot];
 	}
 	if (slot < 0) {
 		throwError(error.UNDEFINED);
 		nextToken();
 	} else {
-		if (type && !predef) {
+		if (type) {
 			switch (type) {
 				case 1:
 					if (!lex.isNum(vari)) throwError(error.BAD_VAR_TYPE, vari.type, type);
@@ -786,7 +785,6 @@ function namedVariable(name, type) {
 			}
 		}
 	}
-	return vari ? true : false;
 }
 
 function declareVar(type) {
@@ -794,6 +792,7 @@ function declareVar(type) {
 	if (r >= 0 && symbols.vars[r].scope === symbols.scopeDepth) throwError(error.VAR_EXISTS);
 	else {
 		symbols.vars.push({ name: token.value, depth: -1, type: lex.getType(type) });
+		emitConstant(token.value);
 		return symbols.varCount++;
 	}
 }
@@ -803,6 +802,7 @@ function declareFun() {
 	if (r >= 0 && symbols.vars[r].scope === symbols.scopeDepth) throwError(error.VAR_EXISTS);
 	else {
 		symbols.vars.push({ name: token.value, depth: -1, type: 0, isFun: true, params: [] });
+		emitConstant(token.value);
 		return symbols.varCount++;
 	}
 }
@@ -849,32 +849,19 @@ function callFun(funcion, slot) {
 		else emit3Bytes(OP.LONG_GET_VAR, slot);
 		emitBytes(OP.CALL, funcion.params.length);
 	}
+	for (let i = 0; i < n; ++i) {
+	}
 }
 
 function defineVar(slot) {
 	symbols.vars[slot].depth = symbols.scopeDepth;
-	if (symbols.vars[slot].isArray) {
-		asignArray(slot);
-	} else setVar(slot);
+	if (symbols.vars[slot].isArray) asignArray(slot);
+	else asignVar(slot);
+	//emitConstant(symbols.vars[slot].name);
 }
 
 
-function asignVar(name) {
-	let slot = resolveVar(name);
-	setVar(slot);
-}
-
-function asignArray(slot) {
-	if (isFun && symbols.vars[slot].scope >= symbols.scopeDepth) {
-		slot = slot - symbols.funVarSlot;
-		if (slot < 256) emitBytes(OP.SET_ARRAY_FUN, slot);
-		else emit3Bytes(OP.LONG_SET_ARRAY_FUN, slot);
-	}
-	if (slot < 256) emitBytes(OP.SET_ARRAY, slot);
-	else emit3Bytes(OP.LONG_SET_ARRAY, slot);
-}
-
-function setVar(slot) {
+function asignVar(slot) {
 	if (symbols.vars[slot].isArray) {
 		if (isFun && symbols.vars[slot].scope >= symbols.scopeDepth) {
 			slot = slot - symbols.funVarSlot;
@@ -890,14 +877,24 @@ function setVar(slot) {
 			slot = slot - symbols.funVarSlot;
 			if (slot < 256) emitBytes(OP.SET_VAR_FUN, slot);
 			else emit3Bytes(OP.LONG_SET_VAR_FUN, slot);
+		} else {
+			if (slot < 256) emitBytes(OP.SET_VAR, slot);
+			else emit3Bytes(OP.LONG_SET_VAR, slot);
 		}
-		if (slot < 256) emitBytes(OP.SET_VAR, slot);
-		else emit3Bytes(OP.LONG_SET_VAR, slot);
 	}
 }
 
-function resolveVar(name) {
+function asignArray(slot) {
+	if (isFun && symbols.vars[slot].scope >= symbols.scopeDepth) {
+		slot = slot - symbols.funVarSlot;
+		if (slot < 256) emitBytes(OP.SET_ARRAY_FUN, slot);
+		else emit3Bytes(OP.LONG_SET_ARRAY_FUN, slot);
+	}
+	if (slot < 256) emitBytes(OP.SET_ARRAY, slot);
+	else emit3Bytes(OP.LONG_SET_ARRAY, slot);
+}
 
+function resolveVar(name) {
 	for (let i = symbols.varCount - 1; i >= 0; i--) {
 		let local = symbols.vars[i];
 		if (name === local.name) {
@@ -921,7 +918,7 @@ function emitLoop(loopStart) {
 	emitByte(OP.LOOP);
 
 	let offset = bytecode.count - loopStart + 2;
-	if (offset > 65535) throeError(error.TOO_MUCH_CODE);
+	if (offset > 65535) throwError(error.TOO_MUCH_CODE);
 
 	emitByte(offset >> 8);
 	emitByte(offset);
@@ -949,6 +946,15 @@ function emitReturn(byte) {
 	if (toPOP > 1) emitBytes(OP.POP_N, makeConstant(toPOP));
 	else if (toPOP === 1) emitByte(OP.POP);
 	bytecode.write(byte, token.line);
+}
+
+function emitConstant(value) {
+	let address = makeConstant(value);
+	if (address < 256) emitBytes(OP.CONSTANT, address);
+	else emit3Bytes(OP.LONG_CONSTANT, address);
+}
+function makeConstant(value) {
+	return bytecode.addConstant(value);
 }
 
 function emitByte(byte) {

@@ -47,7 +47,7 @@ const Type = {
 	MUL: 40,
 	DIV: 41,
 	POW: 42,
-	ASSIGN: 43,
+	ASIGN: 43,
 	LESS: 44,
 	GREAT: 45,
 	EQUAL: 46,
@@ -127,7 +127,7 @@ module.exports.utils = {
 	},
 	isValue: function (tok) {
 		switch (tok.type) {
-			case Type.INTEGER: case Type.FLOAT: case Type.BOOL: case Type.STRING: case Type.CHAR:
+			case Type.INTEGER: case Type.FLOAT: case Type.BOOL: case Type.STRING: case Type.CHAR: case Type.TRUE: case Type.FALSE:
 				return true;
 			default:
 				return false;
@@ -195,7 +195,7 @@ function initializeSpecialSymbols() {
 	specialSymbolTok[47] = Type.DIV;
 	specialSymbolTok[59] = Type.SEMI;
 	specialSymbolTok[60] = Type.LESS;
-	specialSymbolTok[61] = Type.ASSIGN;
+	specialSymbolTok[61] = Type.ASIGN;
 	specialSymbolTok[62] = Type.GREAT;
 
 	specialSymbolTok[91] = Type.LBRACKET;

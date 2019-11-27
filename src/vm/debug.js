@@ -34,6 +34,10 @@ module.exports = {
 				return module.exports.simpleInstruction("ZERO", offset);
 			case OP.EMPTY_STRING:
 				return module.exports.simpleInstruction("EMPTY_STRING", offset);
+			case OP.NEGATE:
+				return module.exports.simpleInstruction("NEGATE", offset);
+			case OP.NOT:
+				return module.exports.simpleInstruction("NOT", offset);
 			case OP.ADD:
 				return module.exports.simpleInstruction("ADD", offset);
 			case OP.SUBTRACT:
@@ -44,24 +48,26 @@ module.exports = {
 				return module.exports.simpleInstruction("DIVIDE", offset);
 			case OP.EXPONEN:
 				return module.exports.simpleInstruction("EXPONEN", offset);
-			case OP.NOT:
-				return module.exports.simpleInstruction("NOT", offset);
+			case OP.OR:
+				return module.exports.simpleInstruction("OR", offset);
+			case OP.AND:
+				return module.exports.simpleInstruction("AND", offset);
 			case OP.EQUAL:
 				return module.exports.simpleInstruction("EQUAL", offset);
 			case OP.UNEQUAL:
 				return module.exports.simpleInstruction("UNEQUAL", offset);
-			case OP.LESS:
-				return module.exports.simpleInstruction("LESS", offset);
-			case OP.LESS_EQ:
-				return module.exports.simpleInstruction("LESS_EQ", offset);
 			case OP.GREATER:
 				return module.exports.simpleInstruction("GREATER", offset);
 			case OP.GREATER_EQ:
 				return module.exports.simpleInstruction("GREATER_EQ", offset);
+			case OP.LESS:
+				return module.exports.simpleInstruction("LESS", offset);
+			case OP.LESS_EQ:
+				return module.exports.simpleInstruction("LESS_EQ", offset);
 			case OP.PRINT:
 				return module.exports.simpleInstruction("PRINT", offset);
 			case OP.READ:
-				return module.exports.simpleInstruction("READ", offset);
+				return module.exports.byteInstruction("READ", chunk, offset);
 			case OP.POP:
 				return module.exports.simpleInstruction("POP", offset);
 			case OP.POP_N:
@@ -130,6 +136,10 @@ module.exports = {
 				return module.exports.simpleInstruction("TO_INT", offset);
 			case OP.TO_CHAR:
 				return module.exports.simpleInstruction("TO_CHAR", offset);
+			case OP.DEFINE_PARAM:
+				return module.exports.byteInstruction("DEFINE_PARAM", chunk, offset);
+			case OP.DEFINE_VAR:
+				return module.exports.byteInstruction("DEFINE_VAR", chunk, offset);
 			default:
 				console.log(`${format(offset)} ${chunk.code[offset]}`);
 				return offset + 1;
