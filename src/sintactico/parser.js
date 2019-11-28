@@ -655,7 +655,7 @@ function read_instr() {
 
 function nextToken() {
 	token = tokenList[++ij];
-	console.log(token);
+	//console.log(token);
 }
 
 function peek(offset) {

@@ -15,20 +15,20 @@ module.exports = class VM {
 		this.var;
 	}
 
-	interpret(bytecode, isui) {
+	interpret(bytecode, isui, debug) {
 		this.bytecode = bytecode;
 		this.stack = [];
 		this.frames = [];
 
 		this.ip = 0;
 		if (bytecode.hasError) return;
-		return this.run(isui);
+		return this.run(isui,debug);
 	}
 
-	run(isui) {
+	run(isui, debug) {
 		let op = 1;
 		while (op) {
-			this._debug_trace();
+			if(debug) this._debug_trace();
 			op = this._readByte();
 
 			switch (op) {
@@ -53,14 +53,14 @@ module.exports = class VM {
 					this._binaryOp(op);
 					break;
 				case OP.PRINT:
-					if (isui) console.log((JSON.stringify({ text: this.stack.pop(), type: 'salida' })));
+					if (isui) console.log(JSON.stringify({ text: this.stack.pop(), type: 'salida' }));
 					else console.log(this.stack.pop());
 					break;
 				case OP.READ: {
 					let t = this._readByte();
 					let v;
 					let name = this.stack.pop();
-					if (isui) process.stdout.write((JSON.stringify({ text: name, type: 'entrada' })));
+					if (isui) console.log(JSON.stringify({ text: name, type: 'entrada' }));
 					switch (t) {
 						case 9://int
 							v = readline.questionInt();
@@ -337,7 +337,6 @@ module.exports = class VM {
 					break;
 				}
 				default:
-					//console.log(this.bytecode.constants);
 
 					return false;
 			}

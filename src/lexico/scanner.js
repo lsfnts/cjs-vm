@@ -30,7 +30,9 @@ module.exports = {
 		let i = 0
 		for await (const line of rl) {
 			tokenList = tokenList.concat(scanLine(line.toString(), lineN++));
+			if (line.toString() === 'end') break;
 		}
+		rl.close();
 		return tokenList;
 
 		/*
