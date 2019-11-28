@@ -67,9 +67,9 @@ module.exports = {
         } else {
             mes = `${typesString[type]} en la linea ${token.line}`
         }
-        //console.log(mes);
-        
-        return {message: mes, line_number: token.line};
+        if (type !== types.NOT_SEMI) console.log(mes);
+
+        return { message: mes, line_number: token.line };
     },
     errorType: types
 }

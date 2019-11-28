@@ -1,5 +1,4 @@
 Begin
-string s;
-s="hola";
-cjprint s;
+int i=10;
+cjprint tostring(i%3);
 End

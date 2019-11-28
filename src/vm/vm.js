@@ -48,19 +48,19 @@ module.exports = class VM {
 					break;
 				case OP.NEGATE: this.stack.push(-this.stack.pop());
 					break;
-				case OP.ADD: case OP.SUBTRACT: case OP.MULTIPLY: case OP.DIVIDE: case OP.EXPONEN: case OP.OR:
+				case OP.ADD: case OP.SUBTRACT: case OP.MULTIPLY: case OP.DIVIDE: case OP.MOD: case OP.EXPONEN: case OP.OR:
 				case OP.AND: case OP.EQUAL: case OP.UNEQUAL: case OP.GREATER: case OP.GREATER_EQ: case OP.LESS: case OP.LESS_EQ:
 					this._binaryOp(op);
 					break;
-				case OP.PRINT: 
-					if (isui) console.log(JSON.stringify({ text: this.stack.pop(), type: 'salida' }));
+				case OP.PRINT:
+					if (isui) console.log((JSON.stringify({ text: this.stack.pop(), type: 'salida' })));
 					else console.log(this.stack.pop());
 					break;
 				case OP.READ: {
 					let t = this._readByte();
 					let v;
 					let name = this.stack.pop();
-					if (isui) console.log(JSON.stringify({ text: name, type: 'entrada' }));
+					if (isui) process.stdout.write((JSON.stringify({ text: name, type: 'entrada' })));
 					switch (t) {
 						case 9://int
 							v = readline.questionInt();
@@ -305,6 +305,12 @@ module.exports = class VM {
 							this.stack.push(res);
 							break;
 						}
+						case OP.AT: {
+							let res = this.stack[base].charAt(this.stack[base + 1]);
+							this.stack.pop(); this.stack.pop();
+							this.stack.push(res);
+							break;
+						}
 						case OP.SIZE:
 							this.stack.push(this.stack.pop().length);
 							break;
@@ -378,6 +384,9 @@ module.exports = class VM {
 			case OP.DIVIDE:
 				this.stack.push(a / b);
 				break;
+			case OP.MOD:
+				this.stack.push(a % b);
+				break;
 			case OP.EXPONEN:
 				this.stack.push(a ** b);
 				break;
@@ -411,7 +420,8 @@ module.exports = class VM {
 	}
 
 	_debug_trace() {
-		
+		//console.log(JSON.stringify());
+
 		db.disassembleInstruction(this.bytecode, this.ip);
 		console.log(this.stack);
 

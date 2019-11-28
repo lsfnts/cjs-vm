@@ -69,6 +69,7 @@ program
 				} else console.log('0');
 				
 				vm.interpret(bytecode, true);
+				process.stdout.once('drain', function () { process.exit(0); });
 			});
 
 		}else{

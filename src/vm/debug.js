@@ -46,6 +46,8 @@ module.exports = {
 				return module.exports.simpleInstruction("MULTIPLY", offset);
 			case OP.DIVIDE:
 				return module.exports.simpleInstruction("DIVIDE", offset);
+				case OP.MOD:
+				return module.exports.simpleInstruction("MOD", offset);
 			case OP.EXPONEN:
 				return module.exports.simpleInstruction("EXPONEN", offset);
 			case OP.OR:

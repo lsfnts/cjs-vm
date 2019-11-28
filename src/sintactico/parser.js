@@ -284,7 +284,7 @@ function expr_num(type) {
 
 function factor(type) {
 	potencia(type);
-	while (token.type === TOK.MUL || token.type === TOK.DIV) {
+	while (token.type === TOK.MUL || token.type === TOK.DIV || token.type === TOK.MOD) {
 		let op = token.type;
 		nextToken();
 		potencia(type);
@@ -294,6 +294,9 @@ function factor(type) {
 				break;
 			case TOK.DIV:
 				emitByte(OP.DIVIDE);
+				break;
+			case TOK.MOD:
+				emitByte(OP.MOD);
 				break;
 		}
 	}
@@ -392,9 +395,10 @@ function parte_bool() {
 		termino_bool();
 
 		switch (op) {
-			case TOK.EQUAL: emitByte(OP.EQUAL); break;
 			case TOK.LESS: emitByte(OP.LESS); break;
 			case TOK.LESSEQ: emitByte(OP.LESS_EQ); break;
+			case TOK.EQUAL: emitByte(OP.EQUAL); break;
+			case TOK.UNEQUAL: emitByte(OP.UNEQUAL); break;
 			case TOK.GREAT: emitByte(OP.GREATER); break;
 			case TOK.GREATEQ: emitByte(OP.GREATER_EQR); break;
 		}
@@ -428,6 +432,8 @@ function termino_bool() {
 function declaracionFuncion() {
 	symbols.funVarCount = 0;
 	let c = declareFun();
+	emitByte(OP.ZERO);
+	emitBytes(OP.DEFINE_VAR, c);
 	symbols.funVarSlot = c + 1;
 	emitConstant(bytecode.count + 7);
 	defineVar(c);
@@ -680,7 +686,7 @@ function sincronizar2(set) {
 function isPreDef(token) {
 	let preDefs = ['',/*1*/ 'write', 'append', 'read', /*4*/'sqrt', 'abs', 'fact', /*7*/ 'ln', 'sen',
 		'cos', 'tan', 'asen', 'acos', 'atan', 'floor', 'ceiling', 'round', /*17*/ 'length', 'split',
-		'substring',/*20*/'size', /*21*/'tostring'];
+		'substring','at',/*21*/'size', /*22*/'tostring'];
 
 	let size = preDefs.length;
 	for (let i = 1; i < size; ++i) {
@@ -692,12 +698,14 @@ function isPreDef(token) {
 
 function predefType(slot) {
 	switch (slot) {
-		case 5: case 6: case 14: case 15: case 16: case 17: case 20:
+		case 5: case 6: case 14: case 15: case 16: case 17: case 21:
 			return 9;
 		case 4: case 7: case 8: case 9: case 10: case 11: case 12: case 13:
 			return 10;
-		case 3: case 18: case 19: case 21:
+		case 3: case 18: case 19: case 22:
 			return 11;
+		case 20:
+			return 12;
 		default:
 			return 0;
 	}
@@ -717,7 +725,9 @@ function predefParams(slot) {
 		return [11, 12];
 	} else if (slot === 19) {
 		return [11, 9, 9];
-	} else if (slot <= 21) {
+	} else if (slot === 20) {
+		return [11, 9];
+	} else if (slot <= 22) {
 		return [0];
 	}
 }
