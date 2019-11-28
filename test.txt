@@ -1,4 +1,15 @@
 Begin
-int i=10;
-cjprint tostring(i%3);
+int contador=0;
+int numero=11;
+for( int i=1 ; i<=numero ; i=i+1){
+if(numero%i==0){
+contador=contador+1;
+}
+}
+if(contador==2){
+cjprint "primo";
+}
+else{
+cjprint "no es primo";
+}
 End

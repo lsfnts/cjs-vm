@@ -28,7 +28,7 @@ module.exports = class VM {
 	run(isui) {
 		let op = 1;
 		while (op) {
-			//this._debug_trace();
+			this._debug_trace();
 			op = this._readByte();
 
 			switch (op) {

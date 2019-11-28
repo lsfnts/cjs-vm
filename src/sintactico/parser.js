@@ -421,9 +421,9 @@ function termino_bool() {
 		if (token.type === TOK.TRUE) emitByte(OP.TRUE);
 		else emitByte(OP.FALSE);
 		nextToken();
-	} else if (token.type === TOK.IDEN) {
+	} /*else if (token.type === TOK.IDEN) {
 		namedVariable(token.value, 0);
-	} else {
+	}*/ else {
 		expresion();
 	}
 	if (notFlag) emitByte(OP.NOT);
@@ -655,7 +655,7 @@ function read_instr() {
 
 function nextToken() {
 	token = tokenList[++ij];
-	//console.log(token);
+	console.log(token);
 }
 
 function peek(offset) {
